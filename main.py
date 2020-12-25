@@ -23,6 +23,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.second_search.clicked.connect(self.second_file_search)
         self.run_button.clicked.connect(self.run_analysis)
         self.directory_search.clicked.connect(self.report_directory_search)
+        self.help_button.clicked.connect(self.open_wiki)
+
+    def open_wiki(self):
+        wb.open_new('https://github.com/smlacava/Metis/wiki')
 
 
     def run_analysis(self):
