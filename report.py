@@ -2,6 +2,7 @@ from fpdf import FPDF
 from distances import *
 import matplotlib.pyplot as plt
 
+
 class report():
     def _scores_histogram(self, scores, group_name="", distribution_name="", bins=None, view=True, save=True):
         """
@@ -101,7 +102,8 @@ class report():
     def _report(self, first_name, second_name, first_EER, second_EER,
                 rates_results, pvalue, d, statistical_results,
                 statistical_results_p, statistical_results2,
-                statistical_results_d, pvalue_G, d_G, pvalue_I, d_I, pdf_name):
+                statistical_results_d, pvalue_G, d_G, pvalue_I, d_I, pdf_name,
+                double_analysis):
         """
         The _report method is used to generate the pdf report of the analysis
         between two different groups (FOR INTERNAL USE ONLY).
@@ -158,8 +160,12 @@ class report():
         pdf.multi_cell(0, cellh, "\n  EER results", 1)
         pdf.set_font('Arial', '', text)
 
-        tabw = int(max([pdf.get_string_width(first_name), pdf.get_string_width(second_name),
-                        pdf.get_string_width(str(round(d[0, 0], 5)))]) * 1.5)
+        if double_analysis is True:
+            tabw = int(max([pdf.get_string_width(first_name), pdf.get_string_width(second_name),
+                            pdf.get_string_width("Cohen's d")]) * 1.5)
+        else:
+            tabw = int(max([pdf.get_string_width(first_name), pdf.get_string_width("-9.9999")])*1.5)
+
         y = pdf.get_y() + 5
         x = pdf.get_x()
         xstart = (pdf_size['w'] / 2) - tabw
@@ -167,35 +173,46 @@ class report():
         himg = int(wimg * 0.75)
         ximg = (pdf_size['w'] - wimg) / 2
 
+        if double_analysis is True:
+            EER_title = "EERs"
+        else:
+            EER_title = "EER"
+
         pdf.set_xy(xstart, y)
-        pdf.multi_cell(tabw * 2, tabh, "EERs", border=1, align='C', fill=0)
+        pdf.multi_cell(tabw * 2, tabh, EER_title, border=1, align='C', fill=0)
         x = pdf.get_x()
         y = pdf.get_y()
         pdf.set_xy(xstart, y)
         pdf.multi_cell(tabw, tabh, first_name, border=1, align='L', fill=0)
         pdf.set_xy(xstart + tabw, y)
         pdf.multi_cell(tabw, tabh, str(round(first_EER, 5)), border=1, align='L', fill=0)
-        x = pdf.get_x()
-        y = pdf.get_y()
-        pdf.set_xy(xstart, y)
-        pdf.multi_cell(tabw, tabh, second_name, border=1, align='L', fill=0)
-        pdf.set_xy(xstart + tabw, y)
-        pdf.multi_cell(tabw, tabh, str(round(second_EER, 5)), border=1, align='L', fill=0)
+
+        if double_analysis is True:
+            x = pdf.get_x()
+            y = pdf.get_y()
+            pdf.set_xy(xstart, y)
+            pdf.multi_cell(tabw, tabh, second_name, border=1, align='L', fill=0)
+            pdf.set_xy(xstart + tabw, y)
+            pdf.multi_cell(tabw, tabh, str(round(second_EER, 5)), border=1, align='L', fill=0)
+
         y = pdf.get_y()
         pdf.set_xy(leftx, y + 5)
 
         pdf.image(first_name + "_Genuine_hist.png", ximg, None, wimg, himg)
         y = pdf.get_y()
         pdf.set_xy(leftx, y + 5)
-        pdf.image(second_name + "_Genuine_hist.png", ximg, None, wimg, himg)
-        pdf.add_page()
-        y = pdf.get_y()
-        pdf.set_xy(leftx, y + 5)
+        if double_analysis is True:
+            pdf.image(second_name + "_Genuine_hist.png", ximg, None, wimg, himg)
+            pdf.add_page()
+            y = pdf.get_y()
+            pdf.set_xy(leftx, y + 5)
+
         pdf.image(first_name + "_Impostor_hist.png", ximg, None, wimg, himg)
         y = pdf.get_y()
         pdf.set_xy(leftx, y + 5)
-        pdf.image(second_name + "_Impostor_hist.png", ximg, None, wimg, himg)
-        y = pdf.get_y()
+        if double_analysis is True:
+            pdf.image(second_name + "_Impostor_hist.png", ximg, None, wimg, himg)
+            y = pdf.get_y()
 
         pdf.add_page()
         y = pdf.get_y()
@@ -205,69 +222,103 @@ class report():
         pdf.set_font('Arial', '', text)
         pdf.multi_cell(0, cellh, rates_results, 0)
         pdf.image(first_name + "_rates.png", ximg, None, wimg, himg)
-        pdf.image(second_name + "_rates.png", ximg, None, wimg, himg)
+        if double_analysis is True:
+            pdf.image(second_name + "_rates.png", ximg, None, wimg, himg)
 
-        features_row = "            "
-        repetitions = len(pvalue)
-        features = len(pvalue[0])
-        for f in range(1, features + 1):
-            features_row += "F"
-            features_row += str(f)
-            features_row += " " * (14 - len(str(f)))
-        pdf.add_page()
-        y = pdf.get_y()
-        pdf.set_xy(leftx, y)
-        pdf.set_font('Arial', 'B', cap)
-        pdf.multi_cell(0, cellh, "\n  Features statistical analysis results\n", 1)
-        pdf.set_font('Arial', '', text)
-        pdf.multi_cell(0, cellh, statistical_results + "\n", 0)
-        pdf.multi_cell(0, cellh - 2, features_row, 0)
-        pdf.multi_cell(0, cellh, statistical_results_p, 0)
-        pdf.multi_cell(0, cellh, statistical_results2, 0)
-        pdf.multi_cell(0, cellh - 2, features_row, 0)
-        pdf.multi_cell(0, cellh, statistical_results_d, 0)
+            features_row = "            "
+            repetitions = len(pvalue)
+            features = len(pvalue[0])
+            for f in range(1, features + 1):
+                features_row += "F"
+                features_row += str(f)
+                features_row += " " * (14 - len(str(f)))
+            pdf.add_page()
+            y = pdf.get_y()
+            pdf.set_xy(leftx, y)
+            pdf.set_font('Arial', 'B', cap)
+            pdf.multi_cell(0, cellh, "\n  Features statistical analysis results\n", 1)
+            pdf.set_font('Arial', '', text)
+            pdf.multi_cell(0, cellh, statistical_results + "\n", 0)
+            pdf.multi_cell(0, cellh - 2, features_row, 0)
+            pdf.multi_cell(0, cellh, statistical_results_p, 0)
+            pdf.multi_cell(0, cellh, statistical_results2, 0)
+            pdf.multi_cell(0, cellh - 2, features_row, 0)
+            pdf.multi_cell(0, cellh, statistical_results_d, 0)
 
-        pdf.add_page()
-        y = pdf.get_y()
-        pdf.set_xy(leftx, y)
-        pdf.set_font('Arial', 'B', cap)
-        pdf.multi_cell(0, cellh, "\n  Genuine and Impostors statistical analysis results\n", 1)
-        pdf.set_font('Arial', '', text)
+            pdf.add_page()
+            y = pdf.get_y()
+            pdf.set_xy(leftx, y)
+            pdf.set_font('Arial', 'B', cap)
+            pdf.multi_cell(0, cellh, "\n  Genuine and Impostors statistical analysis results\n", 1)
+            pdf.set_font('Arial', '', text)
 
-        x = pdf.get_x()
-        y = pdf.get_y() + 5
-        xstart_2 = (pdf_size['w'] / 2) - int(1.5 * tabw)
-        pdf.set_xy(xstart_2, y)
-        pdf.multi_cell(tabw, tabh, "Scores", border=1, align='C', fill=0)
-        pdf.set_xy(xstart_2 + tabw, y)
-        pdf.multi_cell(tabw, tabh, "p-values", border=1, align='C', fill=0)
-        pdf.set_xy(xstart_2 + 2 * tabw, y)
-        pdf.multi_cell(tabw, tabh, "Cohen's d", border=1, align='C', fill=0)
-        x = pdf.get_x()
-        y = pdf.get_y()
-        pdf.set_xy(xstart_2, y)
-        pdf.multi_cell(tabw, tabh, "Genuine", border=1, align='L', fill=0)
-        pdf.set_xy(xstart_2 + tabw, y)
-        pdf.multi_cell(tabw, tabh, str(round(pvalue_G, 5)), border=1, align='L',
-                       fill=0)
-        pdf.set_xy(xstart_2 + 2 * tabw, y)
-        pdf.multi_cell(tabw, tabh, str(round(d_G, 5)), border=1, align='L',
-                       fill=0)
-        x = pdf.get_x()
-        y = pdf.get_y()
-        pdf.set_xy(xstart_2, y)
-        pdf.multi_cell(tabw, tabh, "Impostor", border=1, align='L', fill=0)
-        pdf.set_xy(xstart_2 + tabw, y)
-        pdf.multi_cell(tabw, tabh, str(round(pvalue_I, 5)), border=1, align='L',
-                       fill=0)
-        pdf.set_xy(xstart_2 + 2 * tabw, y)
-        pdf.multi_cell(tabw, tabh, str(round(d_I, 5)), border=1, align='L',
-                       fill=0)
-        y = pdf.get_y()
-        pdf.set_xy(leftx, y + 5)
-        pdf.image("Genuine_dist.png", ximg, None, wimg, himg)
-        pdf.image("Impostor_dist.png", ximg, None, wimg, himg)
+            x = pdf.get_x()
+            y = pdf.get_y() + 5
+            xstart_2 = (pdf_size['w'] / 2) - int(1.5 * tabw)
+            pdf.set_xy(xstart_2, y)
+            pdf.multi_cell(tabw, tabh, "Scores", border=1, align='C', fill=0)
+            pdf.set_xy(xstart_2 + tabw, y)
+            pdf.multi_cell(tabw, tabh, "p-values", border=1, align='C', fill=0)
+            pdf.set_xy(xstart_2 + 2 * tabw, y)
+            pdf.multi_cell(tabw, tabh, "Cohen's d", border=1, align='C', fill=0)
+            x = pdf.get_x()
+            y = pdf.get_y()
+            pdf.set_xy(xstart_2, y)
+            pdf.multi_cell(tabw, tabh, "Genuine", border=1, align='L', fill=0)
+            pdf.set_xy(xstart_2 + tabw, y)
+            pdf.multi_cell(tabw, tabh, str(round(pvalue_G, 5)), border=1, align='L',
+                           fill=0)
+            pdf.set_xy(xstart_2 + 2 * tabw, y)
+            pdf.multi_cell(tabw, tabh, str(round(d_G, 5)), border=1, align='L',
+                           fill=0)
+            x = pdf.get_x()
+            y = pdf.get_y()
+            pdf.set_xy(xstart_2, y)
+            pdf.multi_cell(tabw, tabh, "Impostor", border=1, align='L', fill=0)
+            pdf.set_xy(xstart_2 + tabw, y)
+            pdf.multi_cell(tabw, tabh, str(round(pvalue_I, 5)), border=1, align='L',
+                           fill=0)
+            pdf.set_xy(xstart_2 + 2 * tabw, y)
+            pdf.multi_cell(tabw, tabh, str(round(d_I, 5)), border=1, align='L',
+                           fill=0)
+            y = pdf.get_y()
+            pdf.set_xy(leftx, y + 5)
+            pdf.image("Genuine_dist.png", ximg, None, wimg, himg)
+            pdf.image("Impostor_dist.png", ximg, None, wimg, himg)
         pdf.output(pdf_name, 'F')
+
+    def single_analysis(self, data_manager, statan, biom, features_selector,
+                        data, labels=None, distance=euclidean_distance(),
+                        view_analysis=False, generate_pdf=False,
+                        name="first", bins=None, report_name="report.pdf",
+                        selection_algorithm=None, selected_features=None):
+        first_data, first_labels = data_manager.data_management(data, labels)
+        if not (selection_algorithm is None or selected_features is None):
+            data = features_selector.select_features(selection_algorithm, data,
+                                                     selected_features)
+        scores = biom.compute_scores(data, distance)
+        G, I, thr = biom.genuines_and_impostors(scores, labels)
+        FAR, FRR, CRR, CAR, EER = biom.compute_performance_analysis(G, I, thr)
+
+        if view_analysis is True or generate_pdf is True:
+            EER_scores_results = "EER of the " + str(name) + " group: %.5f" % EER
+            EER_scores_results += "\n\nGenuine and Impostor scores distributions:"
+            rates_results = "\n\nFalse Acceptance Rates and False Rejection Rates:"
+
+            if view_analysis is True:
+                print(EER_scores_results)
+            self._scores_histogram(G, name, "Genuine", bins, view_analysis, generate_pdf)
+            self._scores_histogram(I, name, "Impostor", bins, view_analysis, generate_pdf)
+
+            if view_analysis is True:
+                print(rates_results)
+            self._rates_plot(FAR, FRR, thr, name, view_analysis, generate_pdf)
+            if generate_pdf is True:
+                if not (".pdf" in report_name):
+                    report_name += ".pdf"
+                self._report(name, None, EER, None, rates_results, None,
+                             None, None, None, None, None, None, None, None,
+                             None, report_name, double_analysis=False)
 
     def groups_comparison(self, data_manager, statan, biom, features_selector,
                           first_data, second_data=None, first_labels=None,
@@ -301,15 +352,15 @@ class report():
                               default)
         :param bins:          it is the number of bins which has to be used (None by
                               default, if None it will be computed automatically)
-        :params pdf_name:     it is the name of the eventually generated pdf
+        :params report_name:  it is the name of the eventually generated pdf
                               ("report.pdf" by default)
         """
-        pvalue, d = statan.compute_features_statistics(first_data, second_data,
-                                                       first_labels, second_labels)
         first_data, first_labels = data_manager.data_management(first_data,
                                                                 first_labels)
         second_data, second_labels = data_manager.data_management(second_data,
                                                                   second_labels)
+        pvalue, d = statan.compute_features_statistics(first_data, second_data,
+                                                       first_labels, second_labels)
         if not(selection_algorithm is None or selected_features is None):
             first_data = features_selector.select_features(selection_algorithm,
                                                            first_data,
@@ -409,4 +460,6 @@ class report():
                 self._report(first_name, second_name, first_EER, second_EER,
                              rates_results, pvalue, d, statistical_results,
                              statistical_results_p, statistical_results2,
-                             statistical_results_d, pvalue_G, d_G, pvalue_I, d_I, report_name)
+                             statistical_results_d, pvalue_G, d_G, pvalue_I, d_I, report_name,
+                             double_analysis=True)
+

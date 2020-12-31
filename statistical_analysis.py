@@ -18,8 +18,8 @@ class statistical_analysis():
 
         :return: the Cohen's d value
         """
-        first_N = len(first_data)
-        second_N = len(second_data)
+        first_N = np.shape(first_data)[0]
+        second_N = np.shape(second_data)[0]
         first_var = np.var(first_data, ddof=1)
         second_var = np.var(second_data, ddof=1)
         first_mean = np.mean(first_data)
@@ -38,7 +38,7 @@ class statistical_analysis():
         :param labels: it is the array or the list representing the labels
 
         :return:       the number of repetitions, if it is equal for all the
-                       subjects, -1 otherwise
+                       subjects, 1 otherwise
         """
         names = np.unique(labels)
         repetitions = 0
@@ -48,7 +48,7 @@ class statistical_analysis():
                 if name == lbl:
                     count += 1
             if count != repetitions and repetitions != 0:
-                return -1
+                return 1
             repetitions = count
         return repetitions
 

@@ -1,10 +1,13 @@
 import numpy as np
+
+
 from distances import *
-import statistical_analysis as statan
-import data_manager as man
-import biometric_performance as biom
-import report as rep
-import feature_selector as sel
+from statistical_analysis import *
+from data_manager import *
+from biometric_performance import *
+from report import *
+from feature_selector import *
+from data_loader import *
 
 class metis_study():
     def __init__(self, data=None, distance=euclidean_distance()):
@@ -20,16 +23,17 @@ class metis_study():
                          euclidean distance by default)
         """
         self._set_parameters(data, distance)
-        #self._statan = statistical_analysis()
-        self._statan = statan.statistical_analysis()
-        #self._data_manager = data_manager()
-        self._data_manager = man.data_manager()
-        #self._biom = biometric_performance()
-        self._biom = biom.biometric_performance()
-        #self._report_generator = report()
-        self._report_generator = rep.report()
-        #self._features_selector = features_selector()
-        self._features_selector = sel.features_selector()
+        self._statan = statistical_analysis()
+        # self._statan = statan.statistical_analysis()
+        self._data_manager = data_manager()
+        # self._data_manager = man.data_manager()
+        self._biom = biometric_performance()
+        # self._biom = biom.biometric_performance()
+        self._report_generator = report()
+        # self._report_generator = rep.report()
+        self._features_selector = features_selector()
+        # self._features_selector = sel.features_selector()
+        self._data_loader = data_loader()
 
     def set_data(self, data):
         """
@@ -38,6 +42,8 @@ class metis_study():
         :param data:     it is the (subjects*repetitions*features) 3D-matrix as
                          to analyze
         """
+        if isinstance(data, str):
+            data = self._data_loader.load_data(data)
         self.data, self.first_labels = self._data_manager.data_management(data)
 
     def set_distance(self, distance):
@@ -52,6 +58,7 @@ class metis_study():
         if type(distance) is str:
             available_dist = {'euclidean': euclidean_distance(), 'manhattan': manhattan_distance(),
                               'minkowski': minkowski_distance(), 'mahalanobis': mahalanobis_distance()}
+            # available_dist = {'euclidean':dst.euclidean_distance(), 'manhattan':dst.manhattan_distance(), 'minkowski':dst.minkowski_distance(), 'mahalanobis':dst.mahalanobis_distance()}
             self.distance = available_dist[distance]
         else:
             self.distance = distance
@@ -120,6 +127,10 @@ class metis_study():
         if second_data is None and not (self.data is None):
             second_data = first_data
             first_data = self.data
+        if isinstance(first_data, str):
+            first_data = self._data_loader.load_data(first_data)
+        if isinstance(second_data, str):
+            second_data = self._data_loader.load_data(second_data)
         self.set_distance(distance)
         first_data, second_data = self._statan.statistics_settings(first_data, second_data)
         self._report_generator.groups_comparison(self._data_manager,
@@ -128,3 +139,21 @@ class metis_study():
                                                  self.distance, view_analysis, generate_pdf, first_name,
                                                  second_name, bins, report_name,
                                                  features_selection_algorithm, selected_features)
+
+    def data_analysis(self, data, labels=None, distance=euclidean_distance(),
+                      view_analysis=False, generate_pdf=False, name="first",
+                      bins=None, report_name="report.pdf",
+                      features_selection_algorithm=None,
+                      selected_features=None):
+        if data is None:
+            data = self.data
+        if isinstance(data, str):
+            data = self._data_loader.load_data(data)
+        self.set_distance(distance)
+        self._report_generator.single_analysis(self._data_manager, self._statan,
+                                               self._biom, self._features_selector,
+                                               data, labels, self.distance,
+                                               view_analysis, generate_pdf, name,
+                                               bins, report_name,
+                                               features_selection_algorithm, selected_features)
+
