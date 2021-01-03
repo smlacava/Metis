@@ -1,11 +1,14 @@
 import numpy as np
-import data_manager as man
+from data_manager import *
 from scipy.stats import ranksums
 
 class statistical_analysis():
     def __init__(self):
-        #self._data_manager = data_manager()
-        self._data_manager = man.data_manager()
+        """
+        The __init__ method is the initiaized, and sets the values for the initial attributes.
+        """
+        self._data_manager = data_manager()
+
 
     def compute_cohen_d(self, first_data, second_data):
         """
@@ -27,6 +30,7 @@ class statistical_analysis():
         pooled_std = np.sqrt(((first_N - 1) * first_var + (second_N - 1) * second_var) / (
                     first_N + second_N - 2 + np.finfo(float).eps)) + np.finfo(float).eps
         return (first_mean - second_mean) / pooled_std
+
 
     def _repetitions_check(self, data, labels):
         """
@@ -52,12 +56,24 @@ class statistical_analysis():
             repetitions = count
         return repetitions
 
+
     def _stat_reshape(self, data, subjects, repetitions, features):
+        """
+        The _stat_reshape methos is used to reshape a 2D data matrix into a 3D data matrix (FOR INTERNAL USE ONLY).
+
+        :param data:        it is the 2D ([subjects*repetitions]*features) data matrix
+        :param subjects:    it is the number of subjects
+        :param repetitions: it is the number of repetitions
+        :param features:    it is the number of features
+
+        :return:            the 3D (subjects*repetitions*features) data matrix
+        """
         aux_data = np.zeros((subjects, repetitions, features))
         for s in range(subjects):
             for r in range(repetitions):
                 aux_data[s, r, :] = data[(s * repetitions) + r, 0:features]
         return aux_data
+
 
     def compute_features_statistics(self, first_data, second_data=None,
                                     first_labels=None, second_labels=None):
@@ -65,10 +81,11 @@ class statistical_analysis():
         The compute_features_statistics method computes the Wilcoxon p-value and the
         Cohen's d effect size on the features between two data matrices.
 
-        :param first_data:  it is the first (subjects*repetitions*features) matrix
-        :param second_data: it is the second (subjects*repetitions*features) matrix
-                            (None by default, a previously inserted matrix will be
-                            used if it is None)
+        :param first_data:    it is the first (subjects*repetitions*features) matrix
+        :param second_data:   it is the second (subjects*repetitions*features) matrix
+                              (None by default, a previously inserted matrix will be used if it is None)
+        :param first_labels:  it is the list of labels identifying each subject in the first dataset (None by default)
+        :param second_labels: it is the list of labels identifying each subject in the second dataset (None by default)
 
         :return: the (repetitions*features) pvalue and Cohen's d matrices, in order
         """
@@ -103,6 +120,7 @@ class statistical_analysis():
                                                np.squeeze(second[0:, r, f]))
         return pvalue, d
 
+
     def compute_scores_statistics(self, first_data, second_data):
         """
         The compute_scores_statistics method computes the Wilcoxon p-value and the
@@ -116,6 +134,7 @@ class statistical_analysis():
         [stat, pvalue] = ranksums(np.squeeze(first_data), np.squeeze(second_data))
         d = self.compute_cohen_d(np.squeeze(first_data), np.squeeze(second_data))
         return pvalue, d
+
 
     def statistics_settings(self, first_data, second_data):
         """

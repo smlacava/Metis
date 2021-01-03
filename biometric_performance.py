@@ -20,6 +20,7 @@ class biometric_performance():
         return self._F_performance(np.squeeze(np.array(impostor_score)),
                                    thresholds, condition)
 
+
     def compute_FRR(self, genuine_score, thresholds=0.01):
         """
         The compute_FRR method is used to compute the False Rejection Rate (FRR).
@@ -36,6 +37,7 @@ class biometric_performance():
         """
         condition = lambda score, thr: score <= thr
         return self._F_performance(genuine_score, thresholds, condition)
+
 
     def _F_performance(self, score, thresholds, condition):
         """
@@ -57,10 +59,7 @@ class biometric_performance():
                                threshold value between 0 and 1
         """
         if type(thresholds) is float:
-            thr = thresholds
-            limit = int(1 / thresholds)
-            thresholds = [x * thr for x in range(limit)]
-            thresholds.append(1)
+            thresholds = self._compute_thresholds(thresholds)
         F = np.zeros(shape=(1, len(thresholds)))
         impostors = 0
         L = len(score)
@@ -70,6 +69,22 @@ class biometric_performance():
                 N += condition(score[idx], thr)
             F[0, count] = N / L
         return F[0]
+
+
+    def _compute_thresholds(self, thresholds):
+        """
+        The _compute_thresholds method computes the list of thresholds to use in computing FAR and FRR (FOR INTERNAL USE
+        ONLY).
+
+        :param thresholds: it is a float number representing the step between two threshold values
+
+        :return:           the list of thresholds
+        """
+        thr = thresholds
+        limit = int(1 / thresholds)
+        thresholds = [x * thr for x in range(limit)]
+        thresholds.append(1)
+        return thresholds
 
     def compute_EER(self, FAR, FRR):
         """
@@ -86,6 +101,7 @@ class biometric_performance():
         idx = np.where(distance == min_distance)
         return np.mean((FAR[idx] + FRR[idx]) / 2)
 
+
     def compute_CRR(self, FAR):
         """
         The compute_CRR method computes the Correct Rejection Rate (CRR) from the
@@ -97,6 +113,7 @@ class biometric_performance():
         """
         return (np.ones((1, len(FAR))) - FAR)[0]
 
+
     def compute_CAR(self, FRR):
         """
         The compute_CAR method computes the Correct Acceptance Rate (CAR) from the
@@ -107,6 +124,7 @@ class biometric_performance():
         :return: the 1D-array representing the CAR on each threshold value
         """
         return (np.ones((1, len(FRR))) - FRR)[0]
+
 
     def compute_performance_analysis(self, G, I, thresholds=0.01):
         """
@@ -124,12 +142,18 @@ class biometric_performance():
 
         :return:           the FAR, FRR, CRR and CAR 1D-arrays and the EER value
         """
+        print('  Computing FAR')
         FAR = self.compute_FAR(I, thresholds)
+        print('  Computing FRR')
         FRR = self.compute_FRR(G, thresholds)
+        print('  Computing CRR')
         CRR = self.compute_CRR(FAR)
+        print('  Computing CAR')
         CAR = self.compute_CAR(FRR)
+        print('  Computing EER')
         EER = self.compute_EER(FAR, FRR)
         return FAR, FRR, CRR, CAR, EER
+
 
     def compute_analysis(self, data, labels, distance):
         """
@@ -152,10 +176,12 @@ class biometric_performance():
 
         :return:           the FAR, FRR, CRR and CAR 1D-arrays and the EER value
         """
+        print('  Computing genuine and impostor scores')
         scores = self.compute_scores(data, distance)
         G, I, thresholds = self.genuines_and_impostors(scores, labels)
         FAR, FRR, CRR, CAR, EER = self.compute_performance_analysis(G, I, thresholds)
         return FAR, FRR, CRR, CAR, EER
+
 
     def compute_scores(self, data, distance):
         """
@@ -185,11 +211,18 @@ class biometric_performance():
                 scores[j, i] = scores[i, j]
         return scores
 
+
     def genuines_and_impostors(self, scores, labels):
         """
         The genuines_and_impostors method computes the genuine scores and the
         impostor scores.
 
+        :param scores: it is the 2D (subjects*subjects) representing the computed scores
+        :param labels: it is the list of labels associated to the subjects, in the samme order as the scores
+
+        :return: the array of genuine scores, the array of impostor scores and the array of values found either in one
+                 or both the previous arrays (if a total number of elements lower than 1000 is found, a set of linearly
+                 separated elements having a 0.001 step between two consecutive elements otherwise)
         """
         scores_dimension, genuine_dimension, impostor_dimension = self._define_dimensions(scores, labels)
         genuine_score = np.zeros(shape=(genuine_dimension, 1))
@@ -209,9 +242,21 @@ class biometric_performance():
         imp_unique = np.unique(impostor_score)
         thresholds = np.concatenate(([0], gen_unique, imp_unique, [1]))
         thresholds = np.unique(thresholds)
+        if np.max(np.shape(thresholds)) > 1000:
+            thresholds = self._compute_thresholds(0.001)
         return genuine_score, impostor_score, thresholds
 
+
     def _define_dimensions(self, scores, labels):
+        """
+        The _define_dimension method computes the dimension of arrays related to impostor and genuine scores computation
+        (FOR INTERNAL USE ONLY).
+
+        :param scores: it is the 2D (subjects*subjects) representing the computed scores
+        :param labels: it is the list of labels associated to the subjects, in the samme order as the scores
+
+        :return: the number of subjects, the dimension of the genuine array and the dimension of the impostor array
+        """
         scores_dimension = np.shape(scores)[0]
         genuine_dimension = 0
         impostor_dimension = 0
