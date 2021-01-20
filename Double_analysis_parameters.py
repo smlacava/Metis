@@ -36,7 +36,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                 self.second_labels_file = sys.argv[6]
 
         images_path = self.metis_path / 'Images'
-        self.help_button.setIcon(QtGui.QIcon(str(images_path / "jar_logo.png")))
+        self.help_button.setIcon(QtGui.QIcon(str(images_path / "owl_logo.png")))
         self.run_button.clicked.connect(self.run_analysis)
         self.help_button.clicked.connect(self.open_wiki)
         self.previous_button.clicked.connect(self.previous_interface)

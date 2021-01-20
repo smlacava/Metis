@@ -18,10 +18,11 @@ class MainWindow(QtWidgets.QMainWindow):
         gui_name = str(graphics_path / "Metis.ui")
         uic.loadUi(gui_name, self)
         images_path = self.metis_path / 'Images'
-        self.help_button.setIcon(QtGui.QIcon(str(images_path / "jar_logo.png")))
+        self.help_button.setIcon(QtGui.QIcon(str(images_path / "owl_logo.png")))
         self.help_button.clicked.connect(self.open_wiki)
         self.single_button.clicked.connect(self.single_analysis)
         self.double_button.clicked.connect(self.double_analysis)
+        self.clustering_button.clicked.connect(self.clustering_analysis)
 
     def single_analysis(self):
         self.exit()
@@ -30,6 +31,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def double_analysis(self):
         self.exit()
         os.system("python "+str(self.metis_path / "Double_analysis.py"))
+
+    def clustering_analysis(self):
+        self.exit()
+        os.system("python " + str(self.metis_path / "Clustering_analysis.py"))
 
     def open_wiki(self):
         wb.open_new('https://github.com/smlacava/Metis/wiki')

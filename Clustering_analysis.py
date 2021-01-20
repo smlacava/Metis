@@ -16,7 +16,7 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__(*args, **kwargs)
         self.metis_path = Path(os.path.dirname(__file__))
         graphics_path = self.metis_path / 'Graphics'
-        gui_name = str(graphics_path / "Single_analysis.ui")
+        gui_name = str(graphics_path / "Clustering_analysis.ui")
         uic.loadUi(gui_name, self)
 
         ## Labels file management
@@ -38,7 +38,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.directory_search.clicked.connect(self.report_directory_search)
         self.help_button.clicked.connect(self.open_wiki)
         self.previous_button.clicked.connect(self.previous_interface)
-        self.next_button.clicked.connect(self.next_interface)
         self.check_states = {0:False, 2:True}
         self.loader = data_loader()
 
@@ -52,6 +51,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def first_labels_check(self):
         first_file = self.data_file.text()
         first = np.array(self.loader.load_data(first_file))
+        """
         if len(np.shape(first)) == 2 and self.first_labels_file is None:
             #send each parameter and then the number of file of which require the labels
             gui_call = "python " + str(self.metis_path / "Labels_request.py") + " " + first_file
@@ -60,31 +60,22 @@ class MainWindow(QtWidgets.QMainWindow):
             os.system(gui_call)
         else:
             self.run_analysis(first)
+        """
+        self.run_analysis(first)
 
     def run_analysis(self, first):
-        report_file = str(Path(self.report_directory_name.text()) / self.report_file_name.text())
+        outDir = self.report_directory_name.text()
+        report_file = str(Path(outDir) / 'clustering.png')
         x = ms.metis_study()
         report_state = self.check_states[self.export_report.checkState()]
-        if len(np.shape(first)) == 3:
-            lbl = None
-        else:
-            lbl = self.loader.load_data(self.first_labels_file)
-        x.data_analysis(first, view_analysis=True, generate_pdf=report_state, distance='euclidean',
-                        report_name=report_file, labels=lbl)
+        #if len(np.shape(first)) == 3:
+        #    lbl = None
+        #else:
+        #    lbl = self.loader.load_data(self.first_labels_file)
+        number = int(self.clusters_number.text())
+        x.clustering_analysis(first, clusters=number, view=True, save=report_state, outPath=outDir)
         if report_state is True:
             wb.open_new(report_file)
-
-    def next_interface(self):
-        first_file = self.data_file.text()
-        first = np.array(self.loader.load_data(first_file))
-        if len(np.shape(first)) == 2 and self.first_labels_file is None:
-            self.first_labels_check()
-            return
-        gui_call = "python "+str(self.metis_path / "Single_analysis_parameters.py")+" "+first_file+" "
-        gui_call = gui_call+self.report_directory_name.text()+" "+self.report_file_name.text()+" "+self.first_labels_file
-        self.exit()
-        print('Opening Single Analysis parameters interface')
-        os.system(gui_call)
 
     def exit(self):
         self.close()

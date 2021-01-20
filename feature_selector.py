@@ -8,10 +8,10 @@ class features_selector():
         The columns_selection method allows to select a subset of features from a data matrix, by using the
         corresponding list of indexes.
 
-        :param data: it is the 2D (subjects*features) or 3D (subjects*repetitions*features) data matrix
-        :param indexes: it is the list of indexes representing the selected features
+        :param data:    is the 2D (subjects*features) or 3D (subjects*repetitions*features) data matrix
+        :param indexes: is the list of indexes representing the selected features
 
-        :return: the data matrix considenting the only selected features
+        :return:        the data matrix considenting the only selected features
         """
         data = np.array(data)
         size = np.shape(data)
@@ -26,12 +26,12 @@ class features_selector():
         The pca_selection method allows to select a subset of features from a data matrix, by applying the Principal
         Component Analysis.
 
-        :param data: it is the 2D (subjects*features) data matrix
+        :param data:       is the 2D (subjects*features) data matrix
         :param n_features: if greater or equal to 1, it is the number of principal components to extract (the minimum
                            contribution otherwise, in this case the number of selected features will be the minimum
                            one for which the wished contribution is reached)
 
-        :return: the data matrix considenting the only selected features
+        :return:           the data matrix considenting the only selected features
         """
         if n_features >= 1:
             pca = PCA(n_components=n_features)
@@ -45,10 +45,10 @@ class features_selector():
         The ica_selection method allows to select a subset of features from a data matrix, by applying the Fast
         Independent Component Analysis.
 
-        :param data: it is the 2D (subjects*features) data matrix
+        :param data:       is the 2D (subjects*features) data matrix
         :param n_features: if greater or equal to 1, it is the number of independent components to extract
 
-        :return: the data matrix considenting the only selected features
+        :return:           the data matrix considenting the only selected features
         """
         ica = FastICA(n_components=n_features)
         return ica.fit_transform(np.array(data))
@@ -59,15 +59,15 @@ class features_selector():
         The select_features method allows to select a subset of features from a data matrix, by applying aa chosen
         selection algorithm.
 
-        :param algorithm: it is the selection algorithm, between 'columns' (for columns selection), 'pca' (for Principal
+        :param algorithm:  is the selection algorithm, between 'columns' (for columns selection), 'pca' (for Principal
                            Component Analysis) and 'ica' (for Independent Component Analysis)
-        :param data: it is the 2D (subjects*features) data matrix (in case of columns selection, a 3D
-                            (subjects*repetitions*features) data matrix is also allowed)
+        :param data:       is the 2D (subjects*features) data matrix (in case of columns selection, a 3D
+                           (subjects*repetitions*features) data matrix is also allowed)
         :param n_features: an integer representing the number of features to extract (a number lower than 1 representing
                            the contribution is also allowed in the 'pca' case, and  in this case the number of selected
                            features will be the minimum one for which the wished contribution is reached)
 
-        :return: the data matrix considenting the only selected features
+        :return:           the data matrix considenting the only selected features
         """
         selection_algorithms = {'columns': self.columns_selection,
                                 'pca': self.pca_selection,

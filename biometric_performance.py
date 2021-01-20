@@ -6,34 +6,27 @@ class biometric_performance():
         """
         The compute_FAR method is used to compute the False Acceptance Rate (FAR).
 
-        :param impostor_score: is the 1D-array, representing the impostor scores,
-                               used to compute the FAR array
-        :param thresholds:     is the length of each step which has to be used in
-                               evaluating the different thresholds for which values
-                               compute the FAR, or the array representing all the
-                               considered thrsholds (0.01 by default)
+        :param impostor_score: is the 1D-array, representing the impostor scores, used to compute the FAR array
+        :param thresholds:     is the length of each step which has to be used in evaluating the different thresholds
+                               for which values compute the FAR, or the array representing all the considered thrsholds
+                               (0.01 by default)
 
-        :return:               the 1D-array representing the FAR computed on each
-                               threshold value between 0 and 1
+        :return:               the 1D-array representing the FAR computed on each threshold value between 0 and 1
         """
         condition = lambda score, thr: score > thr
-        return self._F_performance(np.squeeze(np.array(impostor_score)),
-                                   thresholds, condition)
+        return self._F_performance(np.squeeze(np.array(impostor_score)), thresholds, condition)
 
 
     def compute_FRR(self, genuine_score, thresholds=0.01):
         """
         The compute_FRR method is used to compute the False Rejection Rate (FRR).
 
-        :param genuine_score:  is the 1D-array, representing the genuine scores,
-                               used to compute the FRR array
-        :param thresholds:     is the length of each step which has to be used in
-                               evaluating the different thresholds for which values
-                               compute the FAR, or the array representing all the
-                               considered thrsholds (0.01 by default)
+        :param genuine_score:  is the 1D-array, representing the genuine scores, used to compute the FRR array
+        :param thresholds:     is the length of each step which has to be used in evaluating the different thresholds
+                               for which values compute the FAR, or the array representing all the considered thrsholds
+                               (0.01 by default)
 
-        :return:               the 1D-array representing the FRR computed on each
-                               threshold value between 0 and 1
+        :return:               the 1D-array representing the FRR computed on each threshold value between 0 and 1
         """
         condition = lambda score, thr: score <= thr
         return self._F_performance(genuine_score, thresholds, condition)
@@ -44,19 +37,14 @@ class biometric_performance():
         The _F_performance method is used to compute the False Rejection Rate or the
         False Acceptance Rate (FOR INTERNAL USE ONLY).
 
-        :param score:          is the 1D-array, representing the scores on which
-                               compute the FAR or the FRR
-        :param thresholds:     is the length of each step which has to be used in
-                               evaluating the different thresholds for which values
-                               compute the FAR and the FRR, or the array
-                               representing all the considered thrsholds
-        :param condition:      it is the function which compares a score value with
-                               a threshold value (score > threshold for the FAR
-                               computation, score <= threshold for the FRR
-                               computation)
+        :param score:          is the 1D-array, representing the scores on which compute the FAR or the FRR
+        :param thresholds:     is the length of each step which has to be used in evaluating the different thresholds
+                               for which values compute the FAR and the FRR, or the array representing all the
+                               considered thrsholds
+        :param condition:      it is the function which compares a score value with a threshold value (the FAR
+                               considers score > threshold, while the FRR considers score <= threshold)
 
-        :return:               the 1D-array representing the FRR computed on each
-                               threshold value between 0 and 1
+        :return:               the 1D-array representing the FRR computed on each threshold value between 0 and 1
         """
         if type(thresholds) is float:
             thresholds = self._compute_thresholds(thresholds)
@@ -76,7 +64,7 @@ class biometric_performance():
         The _compute_thresholds method computes the list of thresholds to use in computing FAR and FRR (FOR INTERNAL USE
         ONLY).
 
-        :param thresholds: it is a float number representing the step between two threshold values
+        :param thresholds: is a float number representing the step between two threshold values
 
         :return:           the list of thresholds
         """
@@ -88,11 +76,11 @@ class biometric_performance():
 
     def compute_EER(self, FAR, FRR):
         """
-        The compute_EER method computes the Equality Error Rate (EER) through the
-        False Acceptance Rate (FAR) and the False Rejection Rate (FRR).
+        The compute_EER method computes the Equality Error Rate (EER) through the False Acceptance Rate (FAR) and the
+        False Rejection Rate (FRR).
 
-        :param FAR: it is the 1D-array representing the FAR on each threshold value
-        :param FRR: it is the 1D-array representing the FRR on each threshold value
+        :param FAR: is the 1D-array representing the FAR on each threshold value
+        :param FRR: is the 1D-array representing the FRR on each threshold value
 
         :return:    a value representing the EER
         """
@@ -104,10 +92,9 @@ class biometric_performance():
 
     def compute_CRR(self, FAR):
         """
-        The compute_CRR method computes the Correct Rejection Rate (CRR) from the
-        False Acceptance Rate (FAR).
+        The compute_CRR method computes the Correct Rejection Rate (CRR) from the False Acceptance Rate (FAR).
 
-        :param FAR: it is the 1D-array representing the FAR on each threshold value
+        :param FAR: is the 1D-array representing the FAR on each threshold value
 
         :return: the 1D-array representing the CRR on each threshold value
         """
@@ -116,29 +103,26 @@ class biometric_performance():
 
     def compute_CAR(self, FRR):
         """
-        The compute_CAR method computes the Correct Acceptance Rate (CAR) from the
-        False Rejection Rate (FRR).
+        The compute_CAR method computes the Correct Acceptance Rate (CAR) from the False Rejection Rate (FRR).
 
-        :param FRR: it is the 1D-array representing the FRR on each threshold value
+        :param FRR: is the 1D-array representing the FRR on each threshold value
 
-        :return: the 1D-array representing the CAR on each threshold value
+        :return:    the 1D-array representing the CAR on each threshold value
         """
         return (np.ones((1, len(FRR))) - FRR)[0]
 
 
     def compute_performance_analysis(self, G, I, thresholds=0.01):
         """
-        The compute_performance_analysis method computes the False Acceptance Rate
-        (FAR), the False Rejection Rate (FRR), the Correct Rejection Rate (CRR), the
-        Correct Acceptance Rate (CAR) for each threshold value, and the Equality
-        Error Rate (EER) on a genuine scores array and an impostor scores array.
+        The compute_performance_analysis method computes the False Acceptance Rate (FAR), the False Rejection Rate
+        (FRR), the Correct Rejection Rate (CRR), the Correct Acceptance Rate (CAR) for each threshold value, and the
+        Equality Error Rate (EER) on a genuine scores array and an impostor scores array.
 
-        :param G:          it is the 1D-array representing the genuine scores
-        :param I:          it is the 1D-array representing the impostor scores
-        :param thresholds: is the length of each step which has to be used in
-                           evaluating the different thresholds for which values
-                           compute the FAR, or the array representing all the
-                           considered thrsholds (0.01 by default)
+        :param G:          is the 1D-array representing the genuine scores
+        :param I:          is the 1D-array representing the impostor scores
+        :param thresholds: is the length of each step which has to be used in evaluating the different thresholds for
+                           which values compute the FAR, or the array representing all the considered thrsholds (0.01 by
+                           default)
 
         :return:           the FAR, FRR, CRR and CAR 1D-arrays and the EER value
         """
@@ -155,30 +139,31 @@ class biometric_performance():
         return FAR, FRR, CRR, CAR, EER
 
 
-    def compute_analysis(self, data, labels, distance):
+    def compute_analysis(self, data, labels, distance, thresholds=None):
         """
-        The compute_analysis method computes the False Acceptance Rate (FAR), the
-        False Rejection Rate (FRR), the Correct Rejection Rate (CRR), the Correct
-        Acceptance Rate (CAR) for each threshold value, and the Equality Error Rate
-        (EER) on a data matrix.
+        The compute_analysis method computes the False Acceptance Rate (FAR), the False Rejection Rate (FRR), the
+        Correct Rejection Rate (CRR), the Correct Acceptance Rate (CAR) for each threshold value, and the Equality Error
+        Rate (EER) on a data matrix.
 
-        :param data:       it is the 3D (subjects*repetitions*features) data matrix
-                           (None by default, the previous data will be used if None)
-        :param distance:   it is the function (or one string between 'euclidean',
-                           'manhattan' and 'minkowski', representing the homonymous
-                           distances) which is used in order to evaluate the
-                           distance in the genuine and impostor scores computation
-                           (optional, euclidean distance by default)
-        :param thresholds: is the length of each step which has to be used in
-                           evaluating the different thresholds for which values
-                           compute the FAR, or the array representing all the
-                           considered thrsholds (0.01 by default)
+        :param data:       is the 3D (subjects*repetitions*features) data matrix (None by default, the previous data
+                           will be used if None)
+        :param labels:     is the list of labels associated to the subjects, in the samme order as the scores
+        :param distance:   is the function (or one string between 'euclidean', 'manhattan', 'mahalanobis' and
+                           'minkowski', representing the homonymous distances) which is used in order to evaluate the
+                           distance in the genuine and impostor scores computation (optional, euclidean distance by
+                           default)
+        :param thresholds: is the length of each step which has to be used in evaluating the different thresholds for
+                           which values compute the FAR, or the array representing all the considered thrsholds (None by
+                           default)
 
         :return:           the FAR, FRR, CRR and CAR 1D-arrays and the EER value
         """
         print('  Computing genuine and impostor scores')
         scores = self.compute_scores(data, distance)
-        G, I, thresholds = self.genuines_and_impostors(scores, labels)
+        if thresholds is None:
+            G, I, thresholds = self.genuines_and_impostors(scores, labels)
+        else:
+            G, I, aux_thresholds = self.genuines_and_impostors(scores, labels)
         FAR, FRR, CRR, CAR, EER = self.compute_performance_analysis(G, I, thresholds)
         return FAR, FRR, CRR, CAR, EER
 
@@ -187,14 +172,12 @@ class biometric_performance():
         """
         The compute_scores method computes the genuine and the impostor scores.
 
-        :param data:     it is the (subjects*repetitions*features) 3D-matrix as
-                         to analyze (None by default, the previous data will be used
-                         if None)
-        :param distance: it is the function (or one string between 'euclidean',
-                         'manhattan' and 'minkowski', representing the homonymous
-                         distances) which is used in order to evaluate the distance
-                         in the genuine and impostor scores computation (None by
-                         default, the previously inserted data if None)
+        :param data:     is the (subjects*repetitions*features) 3D-matrix as to analyze (None by default, the previous
+                         data will be used if None)
+        :param distance: is the function (or one string between 'euclidean', 'manhattan', 'mahalanobis' and
+                         'minkowski', representing the homonymous distances) which is used in order to evaluate the
+                         distance in the genuine and impostor scores computation (None by default, the previously
+                         inserted data if None)
 
         :return:         the 1D-array representing the genuine scores
                          (genuine_scores) and the impostor scores (impostor_scores)
@@ -217,12 +200,12 @@ class biometric_performance():
         The genuines_and_impostors method computes the genuine scores and the
         impostor scores.
 
-        :param scores: it is the 2D (subjects*subjects) representing the computed scores
-        :param labels: it is the list of labels associated to the subjects, in the samme order as the scores
+        :param scores: is the 2D (subjects*subjects) representing the computed scores
+        :param labels: is the list of labels associated to the subjects, in the samme order as the scores
 
-        :return: the array of genuine scores, the array of impostor scores and the array of values found either in one
-                 or both the previous arrays (if a total number of elements lower than 1000 is found, a set of linearly
-                 separated elements having a 0.001 step between two consecutive elements otherwise)
+        :return:       the array of genuine scores, the array of impostor scores and the array of values found either in
+                       one or both the previous arrays (if a total number of elements lower than 1000 is found, a set of
+                       linearly separated elements having a 0.001 step between two consecutive elements otherwise)
         """
         scores_dimension, genuine_dimension, impostor_dimension = self._define_dimensions(scores, labels)
         genuine_score = np.zeros(shape=(genuine_dimension, 1))
@@ -252,10 +235,11 @@ class biometric_performance():
         The _define_dimension method computes the dimension of arrays related to impostor and genuine scores computation
         (FOR INTERNAL USE ONLY).
 
-        :param scores: it is the 2D (subjects*subjects) representing the computed scores
-        :param labels: it is the list of labels associated to the subjects, in the samme order as the scores
+        :param scores: is the 2D (subjects*subjects) representing the computed scores
+        :param labels: is the list of labels associated to the subjects, in the samme order as the scores
 
-        :return: the number of subjects, the dimension of the genuine array and the dimension of the impostor array
+        :return:       the number of subjects, the dimension of the genuine array and the dimension of the impostor
+                       array
         """
         scores_dimension = np.shape(scores)[0]
         genuine_dimension = 0

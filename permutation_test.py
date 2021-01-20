@@ -1,6 +1,7 @@
 import numpy as np
 from itertools import combinations
 from math import factorial
+from utils import *
 
 
 class permutation_test():
@@ -8,6 +9,7 @@ class permutation_test():
         """
         The __init__ method is the initializer, which sets the value for the attibutes.
         """
+        self._utils = utils()
         self.methods = {'approximate': self._approximate, 'exact': self._exact}
         self.assumptions = {'different': self._different, 'lower': self._lower,
                             'higher': self._higher, 'first_lower': self._lower,
@@ -19,10 +21,10 @@ class permutation_test():
         The _different method return the absolute distance between the means of the two data matrices (FOR INTERNAL USE
         ONLY).
 
-        :param first: it is the first 2D (samples*features) data matrix
+        :param first:  it is the first 2D (samples*features) data matrix
         :param second: it is the second 2D (samples*features) data matrix
 
-        :return: the array representing the absolute differences between means for each feature
+        :return:       the array representing the absolute differences between means for each feature
         """
         return np.abs(self._higher(first, second))
 
@@ -32,10 +34,10 @@ class permutation_test():
         The _different method return the difference between the means of the first data matrix and the second one (FOR
         INTERNAL USE ONLY).
 
-        :param first: it is the first 2D (samples*features) data matrix
+        :param first:  it is the first 2D (samples*features) data matrix
         :param second: it is the second 2D (samples*features) data matrix
 
-        :return: the array representing the differences between means for each feature
+        :return:       the array representing the differences between means for each feature
         """
         return np.mean(first) - np.mean(second)
 
@@ -45,16 +47,16 @@ class permutation_test():
         The _different method return the difference between the means of the second data matrix and the first one (FOR
         INTERNAL USE ONLY).
 
-        :param first: it is the first 2D (samples*features) data matrix
+        :param first:  it is the first 2D (samples*features) data matrix
         :param second: it is the second 2D (samples*features) data matrix
 
-        :return: the array representing the differences between means for each feature
+        :return:       the array representing the differences between means for each feature
         """
         return np.mean(second) - np.mean(first)
 
 
-    def _exact(self, first, second, assumption, combined, reference,
-               first_samples, second_samples, tot_samples, repetitions):
+    def _exact(self, first, second, assumption, combined, reference, first_samples, second_samples, tot_samples,
+               _repetitions):
         """
         The _exact method executes the permutation test by considering all the samples (FOR INTERNAL USE ONLY).
 
@@ -67,23 +69,22 @@ class permutation_test():
         :param first_samples:  it is the number of samples related to the first data matrix
         :param second_samples: it is the number of samples related to the second data matrix
         :param tot_samples:    it is the total number of samples (first_samples + second_samples)
-        :param repetitions:    NOT USED
+        :param _repetitions:   NOT USED
 
         :return:               the p-value resulting from the permutation test
         """
         pvalue = 0.
         for first_idx in combinations(range(tot_samples), first_samples):
             second_idx = [idx for idx in range(tot_samples) if idx not in first_idx]
-            diff = self.assumptions[assumption](combined[list(first_idx)],
-                                                combined[second_idx])
+            diff = self.assumptions[assumption](combined[list(first_idx)], combined[second_idx])
             if diff > reference or np.isclose(diff, reference):
                 pvalue += 1
         pvalue *= (factorial(first_samples) * factorial(second_samples))
         return pvalue / factorial(tot_samples)
 
 
-    def _approximate(self, first, second, assumption, combined, reference,
-                     first_samples, second_samples, tot_samples, repetitions):
+    def _approximate(self, first, second, assumption, combined, reference, first_samples, second_samples, tot_samples,
+                     repetitions):
         """
         The _approximate method executes the permutation test by repeating more times the test on random subsets of
         data (FOR INTERNAL USE ONLY).
@@ -112,13 +113,13 @@ class permutation_test():
         return pvalue / (repetitions + 1)
 
 
-    def compute_permutation_test(self, first, second, method='approximate',
-                                 assumption='different', repetitions=100):
+    def compute_permutation_test(self, first, second, method='approximate', assumption='different', repetitions=100,
+                                 first_labels=None, second_labels=None):
         """
         The _exact method executes the permutation test by considering all the samples (FOR INTERNAL USE ONLY).
 
-        :param first:          it is the first 2D (samples*features) data matrix
-        :param second:         it is the second 2D (samples*features) data matrix
+        :param first:          it is the first 2D (samples*features) or 3D (subjects*repetitions*features) data matrix
+        :param second:         it is the second 2D (samples*features) or 3D (subjects*repetitions*features) data matrix
         :param method:         it is the permutation test method, between 'approximate' and 'exact', to execute the
                                test more times on subsets of the whole dataset or once on the whole dataset,
                                respectively ('approximate' by default)
@@ -128,19 +129,36 @@ class permutation_test():
                                second dataset, respectively ('different' by default)
         :param repetitions:    it is the number of repetitions of the test in case of the approximate permutation
                                test, unused in the exact case (100 by default)
+        :param first_labels:   it is the list of labels identifying each sample (to be used if the first data matrix has
+                               2D format, None by default)
+        :param second_labels:  it is the list of labels identifying each sample (to be used if the second data matrix
+                               has 2D format, None by default)
 
         :return:               the p-value resulting from the permutation test
         """
         first = np.array(first)
         second = np.array(second)
+        first_L, first_subjects, first_repetitions, first_features = self._utils._dimensions(first, first_labels)
+        second_L, second_subjects, second_repetitions, second_features = self._utils._dimensions(second, second_labels)
+        first, second = self._utils._same_format_3D(first, second, first_labels, second_labels)
+        repetitions = np.min([first_repetitions, second_repetitions])
+        features = np.min([first_features, second_features])
+        print('Computing ' + method + ' permutation test on ' + str(features) + ' features and ' + str(repetitions) +
+              ' repetitions')
+        pvalue = np.zeros(shape=(repetitions, features))
         first_samples = np.shape(first)[0]
         second_samples = np.shape(second)[0]
         tot_samples = first_samples + second_samples
-        combined = np.hstack((first, second))
-        reference = self.assumptions[assumption](first, second)
-        return self.methods[method](first, second, assumption, combined,
-                                    reference, first_samples, second_samples,
-                                    tot_samples, repetitions)
+        for r in range(repetitions):
+            for f in range(features):
+                print(' Repetition ' + str(r+1))
+                aux_first = np.squeeze(first[0:, r, f])
+                aux_second = np.squeeze(second[0:, r, f])
+                combined = np.hstack((aux_first, aux_second))
+                reference = self.assumptions[assumption](aux_first, aux_second)
+                pvalue[r, f] = self.methods[method](aux_first, aux_second, assumption, combined, reference,
+                                                    first_samples, second_samples, tot_samples, repetitions)
+        return pvalue
 
 
 

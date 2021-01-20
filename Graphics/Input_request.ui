@@ -460,7 +460,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>../Images/icon.png</normaloff>../Images/icon.png</iconset>
+    <normaloff>../Images/owl_logo.png</normaloff>../Images/owl_logo.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QLabel" name="file_title">

@@ -8,10 +8,10 @@ class distance(ABC):
     """
     The compute_distance method computes the distance between two arrays, with respect to the used distance type.
 
-    :param v1: it is the first array or list of values
-    :param v2: it is the second array or list of values
+    :param v1: is the first array or list of values
+    :param v2: is the second array or list of values
 
-    :return: the distance value between the two arrays
+    :return:   the distance value between the two arrays
     """
     pass
 
@@ -21,29 +21,61 @@ class distance(ABC):
     The set_parameters method allows to set the inverse covariance matrix as object attribute (used for computing the
     Mahalanobis distance).
 
-    :param data: it is the 2D (samples*values) input matrix
+    :param data: is the 2D (samples*values) input matrix
     """
     pass
 
 
 class manhattan_distance(distance):
   def compute_distance(self, v1, v2):
+    """
+    The compute_distance method computes the distance between two arrays, with respect to the manhattan distance.
+
+    :param v1: is the first array or list of values
+    :param v2: is the second array or list of values
+
+    :return:   the distance value between the two arrays
+    """
     return sum(abs(v1-v2))
 
 
 class euclidean_distance(distance):
   def compute_distance(self, v1, v2):
+    """
+    The compute_distance method computes the distance between two arrays, with respect to the euclidean distance.
+
+    :param v1: is the first array or list of values
+    :param v2: is the second array or list of values
+
+    :return:   the distance value between the two arrays
+    """
     return np.linalg.norm(v1-v2)
 
 
 class minkowski_distance(distance):
   def compute_distance(self, v1, v2):
+    """
+    The compute_distance method computes the distance between two arrays, with respect to the minkowski distance.
+
+    :param v1: is the first array or list of values
+    :param v2: is the second array or list of values
+
+    :return:   the distance value between the two arrays
+    """
     p = len(v1)
     return sum((v1-v2)**p)**(1/p)
 
 
 class mahalanobis_distance(distance):
   def compute_distance(self, v1, v2):
+    """
+    The compute_distance method computes the distance between two arrays, with respect to the mahalanobis distance.
+
+    :param v1: is the first array or list of values
+    :param v2: is the second array or list of values
+
+    :return:   the distance value between the two arrays
+    """
     return mahalanobis(v1, v2, self.inv_cov)
 
 
@@ -61,6 +93,11 @@ class mahalanobis_distance(distance):
 
 
   def set_parameters(self, data):
+    """
+    The set_parameters method allows to set the inverse covariance matrix as object attribute.
+
+    :param data: is the 2D (samples*values) input matrix
+    """
     aux_data = np.transpose(data)
     try:
       self.inv_cov = np.linalg.inv(np.cov(aux_data))

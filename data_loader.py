@@ -7,8 +7,9 @@ class data_loader():
         """
         The load_data method allows to load a matrix from a file (.mat).
 
-        :param data_file: it is the name of the file (with its path) containing the matrix
-        :return: the loaded matrix
+        :param data_file: is the name of the file (with its path) containing the matrix
+
+        :return:          the loaded matrix
         """
         if '.mat' in data_file:
             data = self._load_mat(data_file)
@@ -19,8 +20,9 @@ class data_loader():
         """
         The _load_mat method loads a matrix from a .mat file (FOR INTERNAL USE ONLY).
 
-        :param data_file: it is the name of the file (with its path) containing the matrix
-        :return: the loaded matrix
+        :param data_file: is the name of the file (with its path) containing the matrix
+
+        :return:          the loaded matrix
         """
         data = loadmat(r'%s' % data_file)
         for k in data.keys():
