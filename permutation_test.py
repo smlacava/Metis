@@ -2,9 +2,25 @@ import numpy as np
 from itertools import combinations
 from math import factorial
 from utils import *
+import copy
 
 
 class permutation_test():
+    """
+    The permutation_test class allows to compute the permutation test under different settings.
+
+    Attributes:
+        methods:                  is a dictionary which links the methods (approximated and exact) to the related
+                                  permutation test method
+        assumptions:              is a dictionary which links the assumptions (the first data value are higher, lower or
+                                  just different than/from the second data) to the permutation test conditions
+
+    Methods:
+        compute_permutation_test: computes the exact or the approximate permutation test on two different dataset,
+                                  by considering different assumptions
+    """
+
+
     def __init__(self):
         """
         The __init__ method is the initializer, which sets the value for the attibutes.
@@ -136,10 +152,11 @@ class permutation_test():
 
         :return:               the p-value resulting from the permutation test
         """
-        first = np.array(first)
-        second = np.array(second)
-        first_L, first_subjects, first_repetitions, first_features = self._utils._dimensions(first, first_labels)
-        second_L, second_subjects, second_repetitions, second_features = self._utils._dimensions(second, second_labels)
+        aux_first = copy.deepcopy(np.array(first))
+        aux_second = copy.deepcopy(np.array(second))
+        first_L, first_subjects, first_repetitions, first_features = self._utils._dimensions(aux_first, first_labels)
+        second_L, second_subjects, second_repetitions, second_features = self._utils._dimensions(aux_second,
+                                                                                                 second_labels)
         first, second = self._utils._same_format_3D(first, second, first_labels, second_labels)
         repetitions = np.min([first_repetitions, second_repetitions])
         features = np.min([first_features, second_features])
@@ -150,8 +167,8 @@ class permutation_test():
         second_samples = np.shape(second)[0]
         tot_samples = first_samples + second_samples
         for r in range(repetitions):
+            print(' Repetition ' + str(r + 1))
             for f in range(features):
-                print(' Repetition ' + str(r+1))
                 aux_first = np.squeeze(first[0:, r, f])
                 aux_second = np.squeeze(second[0:, r, f])
                 combined = np.hstack((aux_first, aux_second))

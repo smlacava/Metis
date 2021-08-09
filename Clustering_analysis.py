@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import  QFileDialog
 import metis_study as ms
 from pathlib import Path
 import webbrowser as wb
-import os
 import numpy as np
 from data_loader import *
 
@@ -49,33 +48,40 @@ class MainWindow(QtWidgets.QMainWindow):
         wb.open_new('https://github.com/smlacava/Metis/wiki/Single-analysis')
 
     def first_labels_check(self):
-        first_file = self.data_file.text()
-        first = np.array(self.loader.load_data(first_file))
-        """
-        if len(np.shape(first)) == 2 and self.first_labels_file is None:
-            #send each parameter and then the number of file of which require the labels
-            gui_call = "python " + str(self.metis_path / "Labels_request.py") + " " + first_file
-            gui_call += " "  + self.report_directory_name.text() + " " + self.report_file_name.text() + " 0"
-            self.exit()
-            os.system(gui_call)
-        else:
+        try:
+            first_file = self.data_file.text()
+            first = np.array(self.loader.load_data(first_file))
+            """
+            if len(np.shape(first)) == 2 and self.first_labels_file is None:
+                #send each parameter and then the number of file of which require the labels
+                gui_call = "python " + str(self.metis_path / "Labels_request.py") + " " + first_file
+                gui_call += " "  + self.report_directory_name.text() + " " + self.report_file_name.text() + " 0"
+                self.exit()
+                os.system(gui_call)
+            else:
+                self.run_analysis(first)
+            """
             self.run_analysis(first)
-        """
-        self.run_analysis(first)
+        except:
+            os.system("python " + str(self.metis_path / "problem.py"))
+
 
     def run_analysis(self, first):
-        outDir = self.report_directory_name.text()
-        report_file = str(Path(outDir) / 'clustering.png')
-        x = ms.metis_study()
-        report_state = self.check_states[self.export_report.checkState()]
-        #if len(np.shape(first)) == 3:
-        #    lbl = None
-        #else:
-        #    lbl = self.loader.load_data(self.first_labels_file)
-        number = int(self.clusters_number.text())
-        x.clustering_analysis(first, clusters=number, view=True, save=report_state, outPath=outDir)
-        if report_state is True:
-            wb.open_new(report_file)
+        try:
+            outDir = self.report_directory_name.text()
+            report_file = str(Path(outDir) / 'clustering.png')
+            x = ms.metis_study()
+            report_state = self.check_states[self.export_report.checkState()]
+            #if len(np.shape(first)) == 3:
+            #    lbl = None
+            #else:
+            #    lbl = self.loader.load_data(self.first_labels_file)
+            number = int(self.clusters_number.text())
+            x.clustering_analysis(first, clusters=number, view=True, save=report_state, outPath=outDir)
+            if report_state is True:
+                wb.open_new(report_file)
+        except:
+            os.system("python " + str(self.metis_path / "problem.py"))
 
     def exit(self):
         self.close()

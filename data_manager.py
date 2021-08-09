@@ -2,6 +2,18 @@ import numpy as np
 
 
 class data_manager():
+    """
+    The data_manager class allows to manage the analyzed data in order to be usable by the toolbox, automatically
+    managing the differences between 3D (subjects*repetitions*features) unlabeled data and 2D (samples*features) labeled
+    data, in which the labels identify to which subject each sample belongs.
+
+    Methods:
+        data_management: provides the managed 2D (samples*features) data matrix and the related list of labels, from the
+                         3D (subjects*repetitions*features) or 2D (samples*features) raw data, and the list of labels in
+                         the second case
+    """
+
+
     def data_management(self, data, labels=None):
         """
         The data_management method manages the input data matrix in order to be used for the following analysis.

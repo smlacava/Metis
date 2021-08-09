@@ -5,6 +5,78 @@ from pathlib import Path
 
 
 class report():
+    """
+    The report class provides the methods which generates the analysis reports, in form of pdf documents and png images,
+    as well as the analysis themselves.
+
+    Methods:
+        single_analysis:   computes the biometric analysis on the raw dataset
+        groups_comparison: computes the biometric analysis on two raw datasets, and compares them through various
+                           statistical analysis
+        cluster_analysis:  computes the clustering on a raw dataset, and evaluates the performance of the results
+    """
+
+
+    def _roc_curve(self, FAR, CAR, group_name, view=True, save=True, outPath=None):
+        """
+        The _roc_curve method shows and/or saves (in .png format) the Receiver Operating Characteristic curve related to
+        the system performance in terms of False Acceptance Rate and Correct Acceptance Rate (FOR INTERNAL USE ONLY).
+
+        :param FAR:        it is the 1D-array representing the False Acceptance Rate for different thresholds
+        :param CAR:        it is the 1D-array representing the Correct Acceptance Rate for different thresholds
+        :param group_name: it is the name of the analyzed group ("" by default)
+        :param view:       it has to be True in order to show the histogram, False otherwise (True by default)
+        :param save:       it has to be True in order to save the histogram as group_droc.png, where group is the value
+                           of group_name (True by default)
+        :param outPath:    it is the path (directory) in which the resulting image has to be saved (None by default)
+        """
+        plt.plot(FAR, CAR)
+        plt.xlabel("False Acceptance Rate")
+        plt.ylabel("Correct Acceptance Rate")
+        plt.title("ROC curve of the " + str(group_name) + " group")
+        plt.xlim([0, 1])
+        plt.ylim([0, 1])
+        if save is True:
+            plt.savefig(self._fullname(outPath, group_name + "_roc.png"))
+        if view is True:
+            plt.show()
+
+    def _roc_curve_comparison(self, first_FAR, first_CAR, second_FAR, second_CAR, first_name="first",
+                              second_name="second", view=True, save=True, outPath=None):
+        """
+        The _roc_curve_comparison method shows in the same graph and/or saves (in .png format) the Receiver Operating
+        Characteristic curves related to the system performance of two groups, in terms of False Acceptance Rate and
+        Correct Acceptance Rate (FOR INTERNAL USE ONLY).
+
+        :param first_FAR:   it is the 1D-array representing the False Acceptance Rate related to the first analyzed
+                            group for different thresholds
+        :param first_CAR:   it is the 1D-array representing the Correct Acceptance Rate related to the first analyzed
+                            group for different thresholds
+        :param second_FAR:  it is the 1D-array representing the False Acceptance Rate related to the second analyzed
+                            group for different thresholds
+        :param second_CAR:  it is the 1D-array representing the Correct Acceptance Rate related to the second analyzed
+                            group for different thresholds
+        :param first_name:  it is the name of the first analyzed group ("first" by default)
+        :param second_name: it is the name of the second analyzed group ("second" by default)
+        :param view:        it has to be True in order to show the histogram, False otherwise (True by default)
+        :param save:        it has to be True in order to save the histogram as group_droc.png, where group is the value
+                            of group_name (True by default)
+        :param outPath:     it is the path (directory) in which the resulting image has to be saved (None by default)
+        """
+        plt.plot(first_FAR, first_CAR, label=first_name)
+        plt.plot(second_FAR, second_CAR, label=second_name)
+        plt.xlabel("False Acceptance Rate")
+        plt.ylabel("Correct Acceptance Rate")
+        plt.title("Comparison between ROC curves")
+        plt.legend(loc='lower right')
+        plt.xlim([0, 1])
+        plt.ylim([0, 1])
+        if save is True:
+            plt.savefig(self._fullname(outPath, first_name + "_" + second_name + "_roc.png"))
+        if view is True:
+            plt.show()
+
+
     def _scores_histogram(self, scores, group_name="", distribution_name="", bins=None, view=True, save=True,
                           outPath=None):
         """
@@ -27,8 +99,47 @@ class report():
         plt.xlabel('Score')
         plt.ylabel('Frequency')
         plt.title(str(group_name) + " group " + distribution_name + " scores distribution")
+        plt.xlim([0, 1])
         if save is True:
             plt.savefig(self._fullname(outPath, group_name + "_" + distribution_name + "_hist.png"))
+        if view is True:
+            plt.show()
+
+
+    def _scores_histogram_comparison(self, first_scores, second_scores, group_name="", first_distribution_name="first",
+                                     second_distribution_name="second", bins=None, view=True, save=True, outPath=None):
+        """
+        The _scores_histogram_comparison method shows and/or saves (in .png format) two compared histograms related to
+        the same number of scores arrays (FOR INTERNAL USE ONLY).
+
+        :param first_scores:              it is the 1D-array representing the first scores distribution
+        :param second_scores:             it is the 1D-array representing the second scores distribution
+        :param group_name:                it is the name of the first analyzed group ("" by default)
+        :param first_distribution_name:   it is the name of the second analyzed group ("first" by default)
+        :param seccond_distribution_name: it is the name of the analyzed distribution ("second" by default)
+        :param bins:                      it is the number of bins which has to be used (None by default, if None it
+                                          will be computed automatically)
+        :param view:                      it has to be True in order to show the histogram, False otherwise (True by
+                                          default)
+        :param save:                      it has to be True in order to save the histogram as
+                                          group_firstDistribution_secondDistribution_hist.png, where group is the value
+                                          of group_name, firstDistribution is the value of first_distribution_name and
+                                          secondDistribution is the value of second_distribution_name (True by default)
+        :param outPath:                   it is the path (directory) in which the resulting image has to be saved (None
+                                          by default)
+        """
+
+        plt.hist(first_scores, bins, label=first_distribution_name, histtype='step', density=True)
+        plt.hist(second_scores, bins, label=second_distribution_name, histtype='step', density=True)
+        plt.legend(loc='upper right')
+        plt.xlabel('Score')
+        plt.ylabel('Frequency [%]')
+        plt.title(str(group_name) + "-" + first_distribution_name + " " + second_distribution_name +
+                  " scores distribution")
+        plt.xlim([0, 1])
+        if save is True:
+            plt.savefig(self._fullname(outPath, group_name + "_" + first_distribution_name + "_" +
+                                       second_distribution_name + "_hist.png"))
         if view is True:
             plt.show()
 
@@ -93,10 +204,126 @@ class report():
         if view is True:
             plt.show()
 
+    def _report_scores_descriptive_statistics(self, pdf, desc_stats, group_name, xstart_double, y, tabw, tabh):
+        """
+        The _report_scores_descriptive_statistics method generates a table related to descriptive statistics of genuine
+        and impostor similarity scores distributions (FOR INTERNAL USE ONLY).
+
+        :param pdf:           it is the handle to the report file
+        :param desc_stats:    it is the dictionary related to the computed statistics
+        :param group_name:    it is the name of the represented group
+        :param xstart_double: it is the space between left margin and the beginning of the table
+        :param y:             it is the current distance from the top margin
+        :param tabw:          it is the width of each cell of the table
+        :param tabh:          it is the height of each cell of the table
+
+        :return:              the handle of the modified report
+        """
+        pdf.set_xy(xstart_double + tabw, y + 5)
+        pdf.multi_cell(tabw * 2, tabh, group_name, border=1, align='C', fill=0)
+        y = pdf.get_y()
+        pdf.set_xy(xstart_double + tabw, y)
+        pdf.multi_cell(tabw, tabh, "Genuines", border=1, align='C', fill=0)
+        pdf.set_xy(xstart_double + (tabw * 2), y)
+        pdf.multi_cell(tabw, tabh, "Impostors", border=1, align='C', fill=0)
+        y = pdf.get_y()
+        pdf.set_xy(xstart_double, y)
+        pdf.multi_cell(tabw, tabh, "Mean", border=1, align='L', fill=0)
+        pdf.set_xy(xstart_double + tabw, y)
+        pdf.multi_cell(tabw, tabh, str(round(desc_stats['mean'][0], 5)), border=1, align='L', fill=0)
+        pdf.set_xy(xstart_double + 2 * tabw, y)
+        pdf.multi_cell(tabw, tabh, str(round(desc_stats['mean'][1], 5)), border=1, align='L', fill=0)
+        y = pdf.get_y()
+        pdf.set_xy(xstart_double, y)
+        pdf.multi_cell(tabw, tabh, "Median", border=1, align='L', fill=0)
+        pdf.set_xy(xstart_double + tabw, y)
+        pdf.multi_cell(tabw, tabh, str(round(desc_stats['median'][0], 5)), border=1, align='L', fill=0)
+        pdf.set_xy(xstart_double + 2 * tabw, y)
+        pdf.multi_cell(tabw, tabh, str(round(desc_stats['median'][1], 5)), border=1, align='L', fill=0)
+        y = pdf.get_y()
+        pdf.set_xy(xstart_double, y)
+        pdf.multi_cell(tabw, tabh, "Std", border=1, align='L', fill=0)
+        pdf.set_xy(xstart_double + tabw, y)
+        pdf.multi_cell(tabw, tabh, str(round(desc_stats['std'][0], 5)), border=1, align='L', fill=0)
+        pdf.set_xy(xstart_double + 2 * tabw, y)
+        pdf.multi_cell(tabw, tabh, str(round(desc_stats['std'][1], 5)), border=1, align='L', fill=0)
+        return pdf
+
+
+    def _report_statistical_analysis(self, pdf, pvalues, ds, xstart_double, y, tabw, tabh):
+        """
+        The _report_statistical_analysis method generates a table related to p-values and the Cohen's d between the
+        features related to the two groups (FOR INTERNAL USE ONLY).
+
+        :param pdf:           it is the handle to the report file
+        :param pvalues:       it is the array containing the pvalue related to each feature
+        :param ds:            it is the array containting the Cohen's d related to each feature
+        :param xstart_double: it is the space between left margin and the beginning of the table
+        :param y:             it is the current distance from the top margin
+        :param tabw:          it is the width of each cell of the table
+        :param tabh:          it is the height of each cell of the table
+
+        :return:              the handle of the modified report
+        """
+
+        pdf.set_xy(xstart_double + tabw, y+5)
+        pdf.multi_cell(tabw, tabh, "p-value", border=1, align='C', fill=0)
+        pdf.set_xy(xstart_double + (tabw * 2), y+5)
+        pdf.multi_cell(tabw, tabh, "Cohen's d", border=1, align='C', fill=0)
+        L = max(np.shape(pvalues))
+        for i in range(L):
+            y = pdf.get_y()
+            pdf.set_xy(xstart_double, y)
+            pdf.multi_cell(tabw, tabh, "F"+str(i+1), border=1, align='L', fill=0)
+            pdf.set_xy(xstart_double + tabw, y)
+            pdf.multi_cell(tabw, tabh, str(round(pvalues[i], 5)), border=1, align='L', fill=0)
+            pdf.set_xy(xstart_double + 2 * tabw, y)
+            pdf.multi_cell(tabw, tabh, str(round(ds[i], 5)), border=1, align='L', fill=0)
+            if (i+1)%35 == 0 and i > 0:
+                pdf.add_page()
+        return pdf
+
+    def _report_confusion_matrix(self, pdf, cm, group_name, xstart_double, y, tabw, tabh):
+        """
+        The _report_confusion_matrix method generates a table related to a confusion_matrix (FOR INTERNAL USE ONLY).
+
+        :param pdf:           it is the handle to the report file
+        :param cm:            it is the confusion matrix
+        :param group_name:    it is the name of the represented group
+        :param xstart_double: it is the space between left margin and the beginning of the table
+        :param y:             it is the current distance from the top margin
+        :param tabw:          it is the width of each cell of the table
+        :param tabh:          it is the height of each cell of the table
+
+        :return:              the handle of the modified report
+        """
+        pdf.set_xy(xstart_double + tabw, y + 5)
+        pdf.multi_cell(tabw * 2, tabh, group_name, border=1, align='C', fill=0)
+        y = pdf.get_y()
+        pdf.set_xy(xstart_double + tabw, y)
+        pdf.multi_cell(tabw, tabh, "Predicted G", border=1, align='C', fill=0)
+        pdf.set_xy(xstart_double + (tabw * 2), y)
+        pdf.multi_cell(tabw, tabh, "Predicted I", border=1, align='C', fill=0)
+        y = pdf.get_y()
+        pdf.set_xy(xstart_double, y)
+        pdf.multi_cell(tabw, tabh, "True G", border=1, align='L', fill=0)
+        pdf.set_xy(xstart_double + tabw, y)
+        pdf.multi_cell(tabw, tabh, str(round(cm[0][0], 5)), border=1, align='L', fill=0)
+        pdf.set_xy(xstart_double + 2 * tabw, y)
+        pdf.multi_cell(tabw, tabh, str(round(cm[0][1], 5)), border=1, align='L', fill=0)
+        y = pdf.get_y()
+        pdf.set_xy(xstart_double, y)
+        pdf.multi_cell(tabw, tabh, "True I", border=1, align='L', fill=0)
+        pdf.set_xy(xstart_double + tabw, y)
+        pdf.multi_cell(tabw, tabh, str(round(cm[1][0], 5)), border=1, align='L', fill=0)
+        pdf.set_xy(xstart_double + 2 * tabw, y)
+        pdf.multi_cell(tabw, tabh, str(round(cm[1][1], 5)), border=1, align='L', fill=0)
+        return pdf
+
 
     def _report(self, biometric_analysis, statistical_analysis, permutation_test, first_name, second_name, first_EER,
-                second_EER, rates_results, pvalue, d, statistical_results, statistical_results_p, statistical_results2,
-                statistical_results_d, pvalue_G, d_G, pvalue_I, d_I, p_perm, permutation_results,
+                second_EER, first_AUC, second_AUC, first_desc_stats, second_desc_stats, first_cm, second_cm,
+                rates_results, pvalues, ds, pvalue_G, d_G, pvalue_I, d_I, p_perm, permutation_results,
                 permutation_results_p, pdf_name, outPath, double_analysis):
         """
         The _report method is used to generate the pdf report of the analysis between two different groups (FOR INTERNAL
@@ -109,18 +336,10 @@ class report():
         :param second_name:           it is the name of the second group
         :param first_EER:             it is the Equality Error Rate related to the first group
         :param second_EER:            it is the Equality Error Rate related to the second group
-        :param pvalue:                it is the pvalue 2D-matrix related to the comparison of the features between the
+        :param pvalues:               it is the pvalue 2D-matrix related to the comparison of the features between the
                                       two groups
-        :param d:                     it is the Cohen's d 2D-matrix related to the comparison of the features between
+        :param ds:                    it is the Cohen's d 2D-matrix related to the comparison of the features between
                                       the two groups
-        :param statistical_results:   it is a string representing a summary of the statistical results on the comparison
-                                      between features of the different groups
-        :param statistical_results_p: it is the string representing the pvalue table of the statistical results on the
-                                      comparison between features of the different groups
-        :param statistical_results2:  it is a string representing another summary of the statistical results on the
-                                      comparison between features of the different groups
-        :param statistical_results_d: it is the string representing the Cohen's d  table of the statistical results on
-                                      the comparison  between features of the different groups
         :param pvalue_G:              it is the pvalue of the comparison between the genuine scores related to the
                                       different groups
         :param d_G:                   it is the Cohen's d value of the comparison between the genuine scores related to
@@ -162,11 +381,12 @@ class report():
             tabw = int(max([pdf.get_string_width(first_name), pdf.get_string_width(second_name),
                             pdf.get_string_width("Cohen's d")]) * 1.5)
         else:
-            tabw = int(max([pdf.get_string_width(first_name), pdf.get_string_width("-9.9999")])*1.5)
+            tabw = int(max([pdf.get_string_width(first_name), pdf.get_string_width("Cohen's d")]) * 1.5)
 
         y = pdf.get_y() + 5
         x = pdf.get_x()
         xstart = (pdf_size['w'] / 2) - tabw
+        xstart_double = (pdf_size['w'] / 2) - (1.5*tabw)
         wimg = tabw * 5
         himg = int(wimg * 0.75)
         ximg = (pdf_size['w'] - wimg) / 2
@@ -174,9 +394,14 @@ class report():
         if biometric_analysis is True:
             if double_analysis is True:
                 EER_title = "EERs"
+                AUC_title = "AUCs"
             else:
                 EER_title = "EER"
+                AUC_title = "AUC"
 
+            ###########################################################################################################
+            ##################################### EER and scores section ##############################################
+            ###########################################################################################################
             pdf.set_xy(xstart, y)
             pdf.multi_cell(tabw * 2, tabh, EER_title, border=1, align='C', fill=0)
             x = pdf.get_x()
@@ -211,7 +436,33 @@ class report():
             pdf.set_xy(leftx, y + 5)
             if double_analysis is True:
                 pdf.image(self._fullname(outPath, second_name) + "_Impostor_hist.png", ximg, None, wimg, himg)
+
+            pdf.add_page()
+            y = pdf.get_y()
+            pdf.set_xy(leftx, y + 5)
+            pdf.image(self._fullname(outPath, first_name) + "_Genuine_Impostor_hist.png", ximg, None, wimg, himg)
+            y = pdf.get_y()
+            pdf.set_xy(leftx, y + 5)
+            if double_analysis is True:
+                pdf.image(self._fullname(outPath, second_name) + "_Genuine_Impostor_hist.png", ximg, None, wimg, himg)
+                pdf.add_page()
                 y = pdf.get_y()
+                pdf.set_xy(leftx, y + 5)
+                pdf.image(self._fullname(outPath, "Genuine") + "_" + first_name + "_" + second_name + "_hist.png",
+                          ximg, None, wimg, himg)
+                y = pdf.get_y()
+                pdf.set_xy(leftx, y + 5)
+                pdf.image(self._fullname(outPath, "Impostor") + "_" + first_name + "_" + second_name + "_hist.png",
+                          ximg, None, wimg, himg)
+
+            pdf.add_page()
+            pdf.multi_cell(0, cellh, "\n  Descriptive statistics in similarity scores", 1)
+            pdf = self._report_scores_descriptive_statistics(pdf, first_desc_stats, first_name, xstart_double,
+                                                             pdf.get_y(), tabw, tabh)
+            if double_analysis is True:
+                y = pdf.get_y()
+                pdf = self._report_scores_descriptive_statistics(pdf, second_desc_stats, second_name, xstart_double,
+                                                                 pdf.get_y(), tabw, tabh)
 
             pdf.add_page()
             y = pdf.get_y()
@@ -223,16 +474,74 @@ class report():
             pdf.image(self._fullname(outPath, first_name) + "_rates.png", ximg, None, wimg, himg)
             if double_analysis is True:
                 pdf.image(self._fullname(outPath, second_name) + "_rates.png", ximg, None, wimg, himg)
-            pdf.add_page()
 
+            ###########################################################################################################
+            ##################################### Confusion matrix section ############################################
+            ###########################################################################################################
+
+            pdf.add_page()
+            y = pdf.get_y()
+            pdf.set_xy(leftx, y + 5)
+            pdf.set_font('Arial', '', cap)
+            pdf.multi_cell(0, cellh, "\n Confusion Matrix\n", 1)
+            pdf.set_font('Arial', '', text)
+            pdf.multi_cell(0, cellh, "Confusion Matrix related to Genuines rate (G) and Impostors rate (I)", 0)
+            y = pdf.get_y()
+            pdf = self._report_confusion_matrix(pdf, first_cm, first_name, xstart_double, y, tabw, tabh)
+            if double_analysis is True:
+                y = pdf.get_y()
+                pdf = self._report_confusion_matrix(pdf, second_cm, second_name, xstart_double, y, tabw, tabh)
+
+
+
+            ###########################################################################################################
+            ##################################### AUC and ROC curve section ###########################################
+            ###########################################################################################################
+            pdf.add_page()
+            pdf.set_font('Arial', '', cap)
+            pdf.multi_cell(0, cellh, "\n  AUC and ROC results", 1)
+            pdf.set_font('Arial', '', text)
+            y = pdf.get_y()
+            pdf.set_xy(xstart, y+5)
+            pdf.multi_cell(tabw * 2, tabh, AUC_title, border=1, align='C', fill=0)
+            x = pdf.get_x()
+            y = pdf.get_y()
+            pdf.set_xy(xstart, y)
+            pdf.multi_cell(tabw, tabh, first_name, border=1, align='L', fill=0)
+            pdf.set_xy(xstart + tabw, y)
+            pdf.multi_cell(tabw, tabh, str(round(first_AUC, 5)), border=1, align='L', fill=0)
+            if double_analysis is True:
+                x = pdf.get_x()
+                y = pdf.get_y()
+                pdf.set_xy(xstart, y)
+                pdf.multi_cell(tabw, tabh, second_name, border=1, align='L', fill=0)
+                pdf.set_xy(xstart + tabw, y)
+                pdf.multi_cell(tabw, tabh, str(round(second_AUC, 5)), border=1, align='L', fill=0)
+
+            y = pdf.get_y()
+            pdf.set_xy(leftx, y + 5)
+            pdf.image(self._fullname(outPath, first_name) + "_roc.png", ximg, None, wimg, himg)
+            y = pdf.get_y()
+            pdf.set_xy(leftx, y + 5)
+            if double_analysis is True:
+                pdf.image(self._fullname(outPath, second_name) + "_roc.png", ximg, None, wimg, himg)
+                pdf.add_page()
+                y = pdf.get_y()
+                pdf.set_xy(leftx, y + 5)
+                pdf.image(self._fullname(outPath, first_name) + "_" + second_name + "_roc.png", ximg, None, wimg, himg)
+                pdf.add_page()
+                y = pdf.get_y()
+                pdf.set_xy(leftx, y + 5)
+
+        ###############################################################################################################
+        #################################### Statistical analysis section #############################################
+        ###############################################################################################################
         if statistical_analysis is True or permutation_test is True:
             features_row = "            "
-            if not(pvalue is None):
-                repetitions = len(pvalue)
-                features = len(pvalue[0])
+            if not(pvalues is None):
+                features = len(pvalues)
             else:
-                repetitions = len(p_perm)
-                features = len(p_perm[0])
+                features = len(p_perm)
             for f in range(1, features + 1):
                 features_row += "F"
                 features_row += str(f)
@@ -255,12 +564,7 @@ class report():
             pdf.set_font('Arial', 'B', cap)
             pdf.multi_cell(0, cellh, "\n  Features statistical analysis results\n", 1)
             pdf.set_font('Arial', '', text)
-            pdf.multi_cell(0, cellh, statistical_results + "\n", 0)
-            pdf.multi_cell(0, cellh - 2, features_row, 0)
-            pdf.multi_cell(0, cellh, statistical_results_p, 0)
-            pdf.multi_cell(0, cellh, statistical_results2, 0)
-            pdf.multi_cell(0, cellh - 2, features_row, 0)
-            pdf.multi_cell(0, cellh, statistical_results_d, 0)
+            pdf = self._report_statistical_analysis(pdf, pvalues, ds, xstart_double, pdf.get_y(), tabw, tabh)
             pdf.add_page()
 
             if biometric_analysis is True:
@@ -377,25 +681,42 @@ class report():
         report_name = self._fullname(outPath, report_name)
 
         first_data, first_labels = data_manager.data_management(data, labels)
+
         if not (selection_algorithm is None or selected_features is None):
             data = features_selector.select_features(selection_algorithm, data,
                                                      selected_features)
         if biometric_analysis is True:
             scores = biom.compute_scores(data, distance)
-            G, I, thr = biom.genuines_and_impostors(scores, labels)
+            G, I, thr = biom.genuines_and_impostors(scores, first_labels)
             if not(threshold is None):
                 thr = self._compute_thresholds(threshold)
-            FAR, FRR, CRR, CAR, EER = biom.compute_performance_analysis(G, I, thr)
+            desc_stats = self._scores_descriptive_statistics(biom, G, I)
+            FAR, FRR, CRR, CAR, EER, AUC = biom.compute_performance_analysis(G, I, thr)
+            cm = biom.confusion_matrix(FAR, FRR)
+            self._print_confusion_matrix(cm, name)
 
             if view_analysis is True or generate_pdf is True:
                 EER_scores_results = "EER of the " + str(name) + " group: %.5f" % EER
-                EER_scores_results += "\n\nGenuine and Impostor scores distributions:"
+                EER_scores_results += "\n\nGenuine and Impostor similarity scores distributions:"
                 rates_results = "\n\nFalse Acceptance Rates and False Rejection Rates:"
+                AUC_results = "AUC of the " + str(name) + " group: %.5f" % AUC
 
                 if view_analysis is True:
                     print(EER_scores_results)
+                    print("\nGenuine descriptive statistics:\n  Mean:   %.5f" % desc_stats['mean'][0])
+                    print("\n  Median: %.5f" % desc_stats['median'][0])
+                    print("\n  Std:    %.5f" % desc_stats['std'][0])
+                    print("\nImpostor descriptive statistics:\n  Mean:   %.5f" % desc_stats['mean'][1])
+                    print("\n  Median: %.5f" % desc_stats['median'][1])
+                    print("\n  Std:    %.5f" % desc_stats['std'][1])
                 self._scores_histogram(G, name, "Genuine", bins, view_analysis, generate_pdf, outPath)
                 self._scores_histogram(I, name, "Impostor", bins, view_analysis, generate_pdf, outPath)
+                self._scores_histogram_comparison(G, I, name, "Genuine", "Impostor", bins, view_analysis, generate_pdf,
+                                                  outPath)
+
+                if view_analysis is True:
+                    print(AUC_results)
+                self._roc_curve(FAR, CAR, name, view_analysis, generate_pdf, outPath)
 
                 if view_analysis is True:
                     print(rates_results)
@@ -404,8 +725,9 @@ class report():
         if generate_pdf is True:
             if not (".pdf" in report_name):
                 report_name += ".pdf"
-            self._report(biometric_analysis, False, False, name, None, EER, None, rates_results, None, None, None, None, None,
-                         None, None, None, None, None, None, None, None, report_name, outPath, double_analysis=False)
+            self._report(biometric_analysis, False, False, name, None, EER, None, AUC, None, desc_stats, None, cm, None,
+                         rates_results,None, None, None, None, None, None, None, None, None,
+                         report_name, outPath, double_analysis=False)
 
 
     def groups_comparison(self, data_manager, statan, biom, features_selector, perm_test, first_data, second_data=None,
@@ -472,10 +794,10 @@ class report():
 
         report_name = self._fullname(outPath, report_name)
 
-        first_data, first_labels = data_manager.data_management(first_data,
-                                                                first_labels)
-        second_data, second_labels = data_manager.data_management(second_data,
-                                                                  second_labels)
+        first, first_labels = data_manager.data_management(first_data, first_labels)
+        second, second_labels = data_manager.data_management(second_data, second_labels)
+
+        print(np.shape(first_data))
         if not(selection_algorithm is None or selected_features is None):
             first_data = features_selector.select_features(selection_algorithm,
                                                            first_data,
@@ -483,49 +805,60 @@ class report():
             second_data = features_selector.select_features(selection_algorithm,
                                                             second_data,
                                                             selected_features)
-        if permutation_test is True:
-            print('Computing permutation test between features')
-            p_perm = perm_test.compute_permutation_test(first_data, second_data, permutation_method,
-                                                        permutation_assumption, permutation_repetitions, first_labels,
-                                                        second_labels)
-
-        if statistical_analysis is True:
-            print('Computing statistical analysis between features')
-            pvalue, d = statan.compute_features_statistics(first_data, second_data, first_labels, second_labels)
 
         if biometric_analysis is True:
             print('Computing genuine and impostor scores')
             first_scores = biom.compute_scores(first_data, distance)
-            first_G, first_I, first_thr = biom.genuines_and_impostors(first_scores,
-                                                                      first_labels)
+            first_G, first_I, first_thr = biom.genuines_and_impostors(first_scores, first_labels)
+            first_desc_stats = self._scores_descriptive_statistics(biom, first_G, first_I)
+
             second_scores = biom.compute_scores(second_data, distance)
-            second_G, second_I, second_thr = biom.genuines_and_impostors(second_scores,
-                                                                     second_labels)
+            second_G, second_I, second_thr = biom.genuines_and_impostors(second_scores, second_labels)
+            second_desc_stats = self._scores_descriptive_statistics(biom, second_G, second_I)
+
             if not(threshold is None):
                 first_thr = self._compute_thresholds(threshold)
                 second_thr = first_thr
 
             print('\nComputing biometric performance:\n First group:  ')
-            first_FAR, first_FRR, first_CRR, first_CAR, first_EER = biom.compute_performance_analysis(first_G, first_I,
-                                                                                                      first_thr)
+            first_FAR, first_FRR, first_CRR, first_CAR, first_EER, first_AUC = \
+                biom.compute_performance_analysis(first_G, first_I, first_thr)
             print("\n Second group: ")
-            second_FAR, second_FRR, second_CRR, second_CAR, second_EER = biom.compute_performance_analysis(second_G,
-                                                                                                           second_I,
-                                                                                                           second_thr)
+            second_FAR, second_FRR, second_CRR, second_CAR, second_EER, second_AUC = \
+                biom.compute_performance_analysis(second_G, second_I, second_thr)
             print("")
+            first_cm = biom.confusion_matrix(first_FAR, first_FRR)
+            second_cm = biom.confusion_matrix(second_FAR, second_FRR)
+            self._print_confusion_matrix(first_cm, first_name)
+            self._print_confusion_matrix(second_cm, second_name)
+
 
             if statistical_analysis is True:
                 print('\nComputing statistical analysis between scores')
                 pvalue_G, d_G = statan.compute_scores_statistics(first_G, second_G)
                 pvalue_I, d_I = statan.compute_scores_statistics(first_I, second_I)
 
+        if permutation_test is True:
+            print('Computing permutation test between features')
+            p_perm = perm_test.compute_permutation_test(first, second, permutation_method,
+                                                        permutation_assumption, permutation_repetitions, first_labels,
+                                                        second_labels)
+
+        if statistical_analysis is True:
+            print('Computing statistical analysis between features')
+            pvalue, d = statan.compute_features_statistics(first, second, first_labels, second_labels)
 
         if view_analysis is True or generate_pdf is True:
             if biometric_analysis is True:
                 EER_scores_results = "EER of the " + str(first_name) + " group: %.5f" % first_EER
                 EER_scores_results += "\n\n"
                 EER_scores_results += "EER of the " + str(second_name) + " group: %.5f" % second_EER
-                EER_scores_results += "\n\nGenuine and Impostor scores distributions:"
+                EER_scores_results += "\n\nGenuine and Impostor similarity scores distributions:"
+
+                AUC_results = "AUC of the " + str(first_name) + " group: %.5f" % first_AUC
+                AUC_results += "\n\n"
+                AUC_results += "AUC of the " + str(second_name) + " group: %.5f" % second_AUC
+                AUC_results += "\n\nReceiver Operating Characteristic curves:"
 
                 rates_results = "\n\nFalse Acceptance Rates and False Rejection Rates:"
                 if statistical_analysis is True:
@@ -534,9 +867,6 @@ class report():
                     impostor_statistical_results = "\n\nResults of the statistical analysis between the two Impostor scores:\n\n  - pvalue:    %.5f" % pvalue_I
                     impostor_statistical_results += "\n  - Cohen's d: %.5f" % d_I
 
-
-            statistical_results, features_row, statistical_results_p, statistical_results2, statistical_results_d = \
-                self._statistical_strings(statistical_analysis, first_name, second_name, pvalue, d)
             permutation_results, features_row, permutation_results_p = self._permutation_strings(permutation_test,
                                                                                                  first_name,
                                                                                                  second_name,
@@ -545,10 +875,38 @@ class report():
             if biometric_analysis is True:
                 if view_analysis is True:
                     print(EER_scores_results)
+                    print("\n Descriptive statistics on scores: " + first_name)
+                    print("\nGenuine descriptive statistics:\n  Mean:   %.5f" % first_desc_stats['mean'][0])
+                    print("\n  Median: %.5f" % first_desc_stats['median'][0])
+                    print("\n  Std:    %.5f" % first_desc_stats['std'][0])
+                    print("\nImpostor descriptive statistics:\n  Mean:   %.5f" % first_desc_stats['mean'][1])
+                    print("\n  Median: %.5f" % first_desc_stats['median'][1])
+                    print("\n  Std:    %.5f" % first_desc_stats['std'][1])
+                    print("\n Descriptive statistics on scores: " + second_name)
+                    print("\nGenuine descriptive statistics:\n  Mean:   %.5f" % second_desc_stats['mean'][0])
+                    print("\n  Median: %.5f" % second_desc_stats['median'][0])
+                    print("\n  Std:    %.5f" % second_desc_stats['std'][0])
+                    print("\nImpostor descriptive statistics:\n  Mean:   %.5f" % second_desc_stats['mean'][1])
+                    print("\n  Median: %.5f" % second_desc_stats['median'][1])
+                    print("\n  Std:    %.5f" % second_desc_stats['std'][1])
                 self._scores_histogram(first_G, first_name, "Genuine", bins, view_analysis, generate_pdf, outPath)
                 self._scores_histogram(second_G, second_name, "Genuine", bins, view_analysis, generate_pdf, outPath)
                 self._scores_histogram(first_I, first_name, "Impostor", bins, view_analysis, generate_pdf, outPath)
                 self._scores_histogram(second_I, second_name, "Impostor", bins, view_analysis, generate_pdf, outPath)
+                self._scores_histogram_comparison(first_G, first_I, first_name, "Genuine", "Impostor", bins,
+                                                  view_analysis, generate_pdf, outPath)
+                self._scores_histogram_comparison(second_G, second_I, second_name, "Genuine", "Impostor", bins,
+                                                  view_analysis, generate_pdf, outPath)
+                self._scores_histogram_comparison(first_G, second_G, "Genuine", first_name, second_name, bins,
+                                                  view_analysis, generate_pdf, outPath)
+                self._scores_histogram_comparison(first_I, second_I, "Impostor", first_name, second_name, bins,
+                                                  view_analysis, generate_pdf, outPath)
+                if view_analysis is True:
+                    print(AUC_results)
+                self._roc_curve(first_FAR, first_CAR, first_name, view_analysis, generate_pdf, outPath)
+                self._roc_curve(second_FAR, second_CAR, second_name, view_analysis, generate_pdf, outPath)
+                self._roc_curve_comparison(first_FAR, first_CAR, second_FAR, second_CAR, first_name, second_name,
+                                           view_analysis, generate_pdf, outPath)
 
                 if view_analysis is True:
                     print(rates_results)
@@ -562,12 +920,10 @@ class report():
 
             if statistical_analysis is True:
                 if view_analysis is True:
-                    print(statistical_results)
-                    print(features_row)
-                    print(statistical_results_p)
-                    print(statistical_results2)
-                    print(features_row)
-                    print(statistical_results_d)
+                    print("P-values: ", end=" ")
+                    print(pvalue)
+                    print("Cohen's d:", end=" ")
+                    print(d)
                 if biometric_analysis is True:
                     if view_analysis is True:
                         print(genuine_statistical_results)
@@ -581,12 +937,10 @@ class report():
             if generate_pdf is True:
                 if not (".pdf" in report_name):
                     report_name += ".pdf"
-                self._report(biometric_analysis, statistical_analysis, permutation_test, first_name, second_name, first_EER, second_EER,
-                             rates_results, pvalue, d, statistical_results,
-                             statistical_results_p, statistical_results2,
-                             statistical_results_d, pvalue_G, d_G, pvalue_I, d_I, p_perm, permutation_results,
-                             permutation_results_p, report_name, outPath,
-                             double_analysis=True)
+                self._report(biometric_analysis, statistical_analysis, permutation_test, first_name, second_name,
+                             first_EER, second_EER, first_AUC, second_AUC, first_desc_stats, second_desc_stats,
+                             first_cm, second_cm, rates_results, pvalue, d, pvalue_G, d_G, pvalue_I, d_I, p_perm,
+                             permutation_results,permutation_results_p, report_name, outPath, double_analysis=True)
 
 
     def _statistical_strings(self, statistical_analysis, first_name, second_name, pvalue, d):
@@ -597,10 +951,8 @@ class report():
         :param statistical_analysis: True if statistical analysis were computed, False otherwise
         :param first_name:           the name of the first group of data
         :param second_name:          the name of the second group of data
-        :param pvalue:               the matrix representing the p-value for each repetition (rows) and each feature
-                                     (column)
-        :param d:                    the matrix representing the Cohen's d for each repetition (rows) and each feature
-                                     (column)
+        :param pvalue:               the matrix representing the p-value for each feature
+        :param d:                    the matrix representing the Cohen's d for each feature
 
         :return:                     the strings related to the statistical results
         """
@@ -613,7 +965,6 @@ class report():
             statistical_results = "\n\nResults of the statistical analysis on the features related to the "
             statistical_results += str(first_name) + " and the " + str(second_name) + " groups:\n\n  - P-value:\n"
             features_row = "        "
-            repetitions = len(pvalue)
             features = len(pvalue[0])
             for f in range(1, features + 1):
                 features_row += "F"
@@ -680,3 +1031,39 @@ class report():
                 permutation_results_p += "\n"
 
         return permutation_results, features_row, permutation_results_p
+
+
+    def _scores_descriptive_statistics(self, biom, genuine_scores, impostor_scores):
+        """
+        The _scores_secriptive_statistics method provides a dictionary containing all the descriptive statistics related
+        the distributions of similarity scores, as 2-element lists containing the value related to the genuine scores as
+        first element and the value related to the impostor scores as second element (FOR INTERNAL USE ONLY).
+
+        :param biom:            is the biometric_performance object
+        :param genuine_scores:  is the 1D-array representing the genuine scores distribution
+        :param impostor_scores: is the 1D-array representing the impostor scores distribution
+
+        :return:                a disctionary containing the descriptive statistics
+        """
+        stats = dict()
+        G_mean, G_median, G_std = biom.scores_statistics(genuine_scores)
+        I_mean, I_median, I_std = biom.scores_statistics(impostor_scores)
+        stats['mean'] = [G_mean, I_mean]
+        stats['median'] = [G_median, I_median]
+        stats['std'] = [G_std, I_std]
+        return stats
+
+
+    def _print_confusion_matrix(self, cm, group_name=""):
+        """
+        The _print_confusion_matrix prints the confusion matrix (FOR INTERNAL USE ONLY).
+
+        :param cm:         is the confusion matrix ([[CAR, FRR],[FAR, CRR]])
+        :param group_name: is the name of the analyzed group ("" by default)
+        """
+        print("\nConfusion matrix of the " + group_name + "group:")
+        print("        Predicted Genuine   Predicted Impostor")
+        print("Genuine  %.5f" % cm[0][0], end="")
+        print("   %.5f" % cm[0][1])
+        print("Impostor %.5f" % cm[1][0], end="")
+        print("   %.5f" % cm[1][1])

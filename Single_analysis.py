@@ -20,7 +20,7 @@ class MainWindow(QtWidgets.QMainWindow):
         uic.loadUi(gui_name, self)
 
         ## Labels file management
-        self.first_labels_file = None
+        self.first_labels_file = ""
         L = len(sys.argv)
         if L > 1:
             self.data_file.setText(sys.argv[1])
@@ -50,41 +50,52 @@ class MainWindow(QtWidgets.QMainWindow):
         wb.open_new('https://github.com/smlacava/Metis/wiki/Single-analysis')
 
     def first_labels_check(self):
-        first_file = self.data_file.text()
-        first = np.array(self.loader.load_data(first_file))
-        if len(np.shape(first)) == 2 and self.first_labels_file is None:
-            #send each parameter and then the number of file of which require the labels
-            gui_call = "python " + str(self.metis_path / "Labels_request.py") + " " + first_file
-            gui_call += " "  + self.report_directory_name.text() + " " + self.report_file_name.text() + " 0"
-            self.exit()
-            os.system(gui_call)
-        else:
-            self.run_analysis(first)
+        try:
+            first_file = self.data_file.text()
+            first = np.array(self.loader.load_data(first_file))
+            if len(np.shape(first)) == 2 and self.first_labels_file is "None":
+                #send each parameter and then the number of file of which require the labels
+                gui_call = "python " + str(self.metis_path / "Labels_request.py") + " " + first_file
+                gui_call += " "  + self.report_directory_name.text() + " " + self.report_file_name.text() + " 0"
+                self.exit()
+                os.system(gui_call)
+            else:
+                self.run_analysis(first)
+        except:
+            os.system("python " + str(self.metis_path / "problem.py"))
+
 
     def run_analysis(self, first):
-        report_file = str(Path(self.report_directory_name.text()) / self.report_file_name.text())
-        x = ms.metis_study()
-        report_state = self.check_states[self.export_report.checkState()]
-        if len(np.shape(first)) == 3:
-            lbl = None
-        else:
-            lbl = self.loader.load_data(self.first_labels_file)
-        x.data_analysis(first, view_analysis=True, generate_pdf=report_state, distance='euclidean',
-                        report_name=report_file, labels=lbl)
-        if report_state is True:
-            wb.open_new(report_file)
+        try:
+            report_file = str(Path(self.report_directory_name.text()) / self.report_file_name.text())
+            x = ms.metis_study()
+            report_state = self.check_states[self.export_report.checkState()]
+            if len(np.shape(first)) == 3:
+                lbl = None
+            else:
+                lbl = self.loader.load_data(self.first_labels_file)
+            x.data_analysis(first, view_analysis=True, generate_pdf=report_state, distance='euclidean',
+                            report_name=report_file, labels=lbl, threshold=0.01)
+            if report_state is True:
+                wb.open_new(report_file)
+        except:
+            os.system("python " + str(self.metis_path / "problem.py"))
+
 
     def next_interface(self):
-        first_file = self.data_file.text()
-        first = np.array(self.loader.load_data(first_file))
-        if len(np.shape(first)) == 2 and self.first_labels_file is None:
-            self.first_labels_check()
-            return
-        gui_call = "python "+str(self.metis_path / "Single_analysis_parameters.py")+" "+first_file+" "
-        gui_call = gui_call+self.report_directory_name.text()+" "+self.report_file_name.text()+" "+self.first_labels_file
-        self.exit()
-        print('Opening Single Analysis parameters interface')
-        os.system(gui_call)
+        try:
+            first_file = self.data_file.text()
+            first = np.array(self.loader.load_data(first_file))
+            if len(np.shape(first)) == 2 and self.first_labels_file is "None":
+                self.first_labels_check()
+                return
+            gui_call = "python "+str(self.metis_path / "Single_analysis_parameters.py")+" "+first_file+" "
+            gui_call = gui_call+self.report_directory_name.text()+" "+self.report_file_name.text()+" "+self.first_labels_file
+            self.exit()
+            print('Opening Single Analysis parameters interface')
+            os.system(gui_call)
+        except:
+            os.system("python " + str(self.metis_path / "problem.py"))
 
     def exit(self):
         self.close()

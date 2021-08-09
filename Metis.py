@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import  QFileDialog
 import metis_study as ms
 from pathlib import Path
 import webbrowser as wb
-import os
 import Double_analysis
 
 class MainWindow(QtWidgets.QMainWindow):

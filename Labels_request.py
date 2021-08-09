@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import  QFileDialog
 import metis_study as ms
 from pathlib import Path
 import webbrowser as wb
-import os
 import numpy as np
 from data_loader import *
 
@@ -48,8 +47,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def ok(self):
-        self.gui_call = self.gui_call + " " + self.labels_file_text.text()
-        self.previous_interface()
+        try:
+            self.gui_call = self.gui_call + " " + self.labels_file_text.text()
+            self.previous_interface()
+        except:
+            os.system("python " + str(self.metis_path / "problem.py"))
 
 
     def exit(self):

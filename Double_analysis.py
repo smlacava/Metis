@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import  QFileDialog
 import metis_study as ms
 from pathlib import Path
 import webbrowser as wb
-import os
 from data_loader import *
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -19,8 +18,8 @@ class MainWindow(QtWidgets.QMainWindow):
         uic.loadUi(gui_name, self)
 
         ## Labels file management
-        self.first_labels_file = None
-        self.second_labels_file = None
+        self.first_labels_file = "None"
+        self.second_labels_file = "None"
         L = len(sys.argv)
         if L > 1:
             self.first_file.setText(sys.argv[1])
@@ -36,7 +35,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                 self.second_labels_file = sys.argv[6]
 
         images_path = self.metis_path / 'Images'
-        self.help_button.setIcon(QtGui.QIcon(str(images_path / "jar_logo.png")))
+        self.help_button.setIcon(QtGui.QIcon(str(images_path / "owl_logo.png")))
         self.first_search.clicked.connect(self.first_file_search)
         self.second_search.clicked.connect(self.second_file_search)
         self.run_button.clicked.connect(self.first_labels_check)
@@ -52,71 +51,89 @@ class MainWindow(QtWidgets.QMainWindow):
         os.system("python " + str(self.metis_path / "Metis.py"))
 
     def next_interface(self):
-        first_file = self.first_file.text()
-        first = np.array(self.loader.load_data(first_file))
-        if len(np.shape(first)) == 2 and self.first_labels_file is None:
-            self.first_labels_check()
-            return
-        second_file = self.second_file.text()
-        second = np.array(self.loader.load_data(second_file))
-        if len(np.shape(second)) == 2 and self.second_labels_file is None:
-            self.second_labels_check(first)
-            return
-        gui_call = "python " + str(self.metis_path / "Double_analysis_parameters.py") + " " + self.first_file.text()
-        gui_call = gui_call + " " + self.second_file.text() + " " + self.report_directory_name.text() + " "
-        gui_call = gui_call + self.report_file_name.text() + " " + self.first_labels_file + " " +self.second_labels_file
-        self.exit()
-        print('Opening Double Analysis parameters interface')
-        os.system(gui_call)
+        try:
+            first_file = self.first_file.text()
+            first = np.array(self.loader.load_data(first_file))
+            if len(np.shape(first)) == 2 and self.first_labels_file is "None":
+                self.first_labels_check()
+                return
+            second_file = self.second_file.text()
+            second = np.array(self.loader.load_data(second_file))
+            if len(np.shape(second)) == 2 and self.second_labels_file is "None":
+                self.second_labels_check(first)
+                return
+            gui_call = "python " + str(self.metis_path / "Double_analysis_parameters.py") + " " + self.first_file.text()
+            gui_call = gui_call + " " + self.second_file.text() + " " + self.report_directory_name.text() + " "
+            gui_call = gui_call + self.report_file_name.text() + " " + self.first_labels_file + " " +self.second_labels_file
+            print(gui_call)
+            self.exit()
+            print('Opening Double Analysis parameters interface')
+            os.system(gui_call)
+        except:
+            os.system("python " + str(self.metis_path / "problem.py"))
+
 
     def open_wiki(self):
         wb.open_new('https://github.com/smlacava/Metis/wiki/Double-analysis')
 
+
     def first_labels_check(self):
-        first_file = self.first_file.text()
-        first = np.array(self.loader.load_data(first_file))
-        if len(np.shape(first)) == 2 and self.first_labels_file is None:
-            second_file = self.second_file.text()
-            #send each parameter and then the number of file of which require the labels
-            gui_call = "python " + str(self.metis_path / "Labels_request.py") + " " + first_file + " "
-            gui_call += second_file + " "  + self.report_directory_name.text() + " " + self.report_file_name.text()
-            gui_call += " 1"
-            self.exit()
-            os.system(gui_call)
-        else:
-            self.second_labels_check(first)
+        try:
+            first_file = self.first_file.text()
+            first = np.array(self.loader.load_data(first_file))
+            if len(np.shape(first)) == 2 and self.first_labels_file is "None":
+                second_file = self.second_file.text()
+                #send each parameter and then the number of file of which require the labels
+                gui_call = "python " + str(self.metis_path / "Labels_request.py") + " " + first_file + " "
+                gui_call += second_file + " "  + self.report_directory_name.text() + " " + self.report_file_name.text()
+                gui_call += " 1"
+                self.exit()
+                os.system(gui_call)
+            else:
+                self.second_labels_check(first)
+        except:
+            os.system("python " + str(self.metis_path / "problem.py"))
+
 
     def second_labels_check(self, first):
-        second_file = self.second_file.text()
-        second = np.array(self.loader.load_data(second_file))
-        if len(np.shape(second)) == 2 and self.second_labels_file is None:
-            first_file = self.first_file.text()
-            #send each parameter and then the number of file of which require the labels
-            gui_call = "python " + str(self.metis_path / "Labels_request.py") + " " + first_file + " "
-            gui_call += second_file + " "  + self.report_directory_name.text() + " " + self.report_file_name.text()
-            gui_call += " " + self.first_labels_file + " 2"
-            self.exit()
-            os.system(gui_call)
-        else:
-            self.run_analysis(first, second)
+        try:
+            second_file = self.second_file.text()
+            second = np.array(self.loader.load_data(second_file))
+            if len(np.shape(second)) == 2 and self.second_labels_file is "None":
+                first_file = self.first_file.text()
+                #send each parameter and then the number of file of which require the labels
+                gui_call = "python " + str(self.metis_path / "Labels_request.py") + " " + first_file + " "
+                gui_call += second_file + " "  + self.report_directory_name.text() + " " + self.report_file_name.text()
+                gui_call += " " + self.first_labels_file + " 2"
+                self.exit()
+                os.system(gui_call)
+            else:
+                self.run_analysis(first, second)
+        except:
+            os.system("python " + str(self.metis_path / "problem.py"))
+
 
     def run_analysis(self, first, second):
-        report_file = str(Path(self.report_directory_name.text()) / self.report_file_name.text())
-        x = ms.metis_study()
-        report_state = self.check_states[self.export_report.checkState()]
-        if len(np.shape(first)) == 3:
-            first_lbl = None
-        else:
-            first_lbl = self.loader.load_data(self.first_labels_file)
-        if len(np.shape(second)) == 3:
-            second_lbl = None
-        else:
-            second_lbl = self.loader.load_data(self.second_labels_file)
-        x.groups_comparison(first, second, view_analysis=True, generate_pdf=report_state,
-                            distance='euclidean', first_labels=first_lbl,
-                            second_labels=second_lbl, report_name=report_file)
-        if report_state is True:
-            wb.open_new(report_file)
+        try:
+            report_file = str(Path(self.report_directory_name.text()) / self.report_file_name.text())
+            x = ms.metis_study()
+            report_state = self.check_states[self.export_report.checkState()]
+            if len(np.shape(first)) == 3:
+                first_lbl = None
+            else:
+                first_lbl = self.loader.load_data(self.first_labels_file)
+            if len(np.shape(second)) == 3:
+                second_lbl = None
+            else:
+                second_lbl = self.loader.load_data(self.second_labels_file)
+            x.groups_comparison(first, second, view_analysis=True, generate_pdf=report_state,
+                                distance='euclidean', first_labels=first_lbl,
+                                second_labels=second_lbl, report_name=report_file, threshold=0.01)
+            if report_state is True:
+                wb.open_new(report_file)
+        except:
+            os.system("python " + str(self.metis_path / "problem.py"))
+
 
     def exit(self):
         self.close()

@@ -10,7 +10,32 @@ from clustering import *
 from permutation_test import *
 from utils import *
 
+
 class metis_study():
+    """
+    The metis_study class permorms all the analysis provided by the METIS toolbox:
+     - Biometric analysis: similarity scores, genuine and impostor scores distributions, FAR, FRR, EER and so on
+     - Statistical analysis: ranksum, permutation test and Cohen's d
+     - Clustering: K-Means clustering, purity and silhouette
+
+    Attributes:
+        distance:               represents the used distance metric
+        data:                   a data matrix which is used to perform the analysis by default
+        first_labels:           a list of labels associated by default to the first data matrix if it is not provided,
+                                if two datasets are involved by the analysis
+
+    Methods:
+        set_data:               sets the default data matrix
+        set_distance:           sets the default distance metric
+        compute_scores:         computes the similarity scores from the data matrix
+        genuines_and_impostors: computes the genuine and impostor score distributions from the similarity score matrix
+        groups_comparison:      computes the biometric analysis on two data matrices, and compares them through some
+                                statistical analysis
+        data_analysis:          computes the biometric analysis on a data matrix
+        clustering_analysis:    computes the clustering analysis and its evaluation
+    """
+
+
     def __init__(self, data=None, distance=euclidean_distance()):
         """
         The __init__ method is the initializer of the class.
@@ -176,7 +201,6 @@ class metis_study():
         if isinstance(second_data, str):
             second_data = self._data_loader.load_data(second_data)
         self.set_distance(distance)
-        first_data, second_data = self._statan.statistics_settings(first_data, second_data)
         self._report_generator.groups_comparison(self._data_manager,
                                                  self._statan, self._biom, self._features_selector, self._perm_test,
                                                  first_data, second_data, first_labels, second_labels,

@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import  QFileDialog
 import metis_study as ms
 from pathlib import Path
 import webbrowser as wb
-import os
 from data_loader import *
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -19,8 +18,8 @@ class MainWindow(QtWidgets.QMainWindow):
         uic.loadUi(gui_name, self)
 
         ## Labels file management
-        self.first_labels_file = None
-        self.second_labels_file = None
+        self.first_labels_file = "None"
+        self.second_labels_file = "None"
         L = len(sys.argv)
         if L > 1:
             self.first_file = sys.argv[1]
@@ -94,30 +93,35 @@ class MainWindow(QtWidgets.QMainWindow):
         return features
 
     def run_analysis(self):
-        first = np.array(self.loader.load_data(self.first_file))
-        second = np.array(self.loader.load_data(self.second_file))
-        report_file = str(Path(self.report_directory_name) / self.report_file_name)
-        x = ms.metis_study()
-        report_state = self.check_states[self.export_report.checkState()]
-        if len(np.shape(first)) == 3:
-            first_lbl = None
-        else:
-            first_lbl = self.loader.load_data(self.first_labels_file)
-        if len(np.shape(second)) == 3:
-            second_lbl = None
-        else:
-            second_lbl = self.loader.load_data(self.second_labels_file)
-        features = self.chosen_features()
-        x.groups_comparison(first, second, view_analysis=True, generate_pdf=report_state,
-                            distance=self.selected_distance(), first_labels=first_lbl,
-                            second_labels=second_lbl, report_name=report_file, first_name=self.first_name.text(),
-                            second_name=self.second_name.text(), features_selection_algorithm=self.selected_algorithm(),
-                            selected_features=features)
-        if report_state is True:
-            wb.open_new(report_file)
+        try:
+            first = np.array(self.loader.load_data(self.first_file))
+            second = np.array(self.loader.load_data(self.second_file))
+            report_file = str(Path(self.report_directory_name) / self.report_file_name)
+            x = ms.metis_study()
+            report_state = self.check_states[self.export_report.checkState()]
+            if len(np.shape(first)) == 3:
+                first_lbl = None
+            else:
+                first_lbl = self.loader.load_data(self.first_labels_file)
+            if len(np.shape(second)) == 3:
+                second_lbl = None
+            else:
+                second_lbl = self.loader.load_data(self.second_labels_file)
+            features = self.chosen_features()
+            x.groups_comparison(first, second, view_analysis=True, generate_pdf=report_state,
+                                distance=self.selected_distance(), first_labels=first_lbl,
+                                second_labels=second_lbl, report_name=report_file, first_name=self.first_name.text(),
+                                second_name=self.second_name.text(), features_selection_algorithm=self.selected_algorithm(),
+                                selected_features=features)
+            if report_state is True:
+                wb.open_new(report_file)
+        except:
+            os.system("python " + str(self.metis_path / "problem.py"))
+
 
     def exit(self):
         self.close()
+
 
     def first_file_search(self):
         fileName = self.file_search()

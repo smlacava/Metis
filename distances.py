@@ -3,6 +3,11 @@ from scipy.spatial.distance import mahalanobis
 import numpy as np
 
 class distance(ABC):
+  """
+  The distance class is an abstract class for the other distance classes.
+  """
+
+
   @abstractmethod
   def compute_distance(self, v1, v2):
     """
@@ -26,7 +31,17 @@ class distance(ABC):
     pass
 
 
+
+
 class manhattan_distance(distance):
+  """
+  The manhattan_distance allows to compute the manhattan distance between two data points.
+
+  Methods:
+    compute_distance: computes the manhattan distance between two data points, represented as two arrays.
+  """
+
+
   def compute_distance(self, v1, v2):
     """
     The compute_distance method computes the distance between two arrays, with respect to the manhattan distance.
@@ -39,7 +54,17 @@ class manhattan_distance(distance):
     return sum(abs(v1-v2))
 
 
+
+
 class euclidean_distance(distance):
+  """
+  The euclidean_distance allows to compute the manhattan distance between two data points.
+
+  Methods:
+    compute_distance: computes the euclidean distance between two data points, represented as two arrays.
+  """
+
+
   def compute_distance(self, v1, v2):
     """
     The compute_distance method computes the distance between two arrays, with respect to the euclidean distance.
@@ -52,7 +77,17 @@ class euclidean_distance(distance):
     return np.linalg.norm(v1-v2)
 
 
+
+
 class minkowski_distance(distance):
+  """
+  The minkowki_distance allows to compute the manhattan distance between two data points.
+
+  Methods:
+    compute_distance: computes the minkowski distance between two data points, represented as two arrays.
+  """
+
+
   def compute_distance(self, v1, v2):
     """
     The compute_distance method computes the distance between two arrays, with respect to the minkowski distance.
@@ -66,7 +101,22 @@ class minkowski_distance(distance):
     return sum((v1-v2)**p)**(1/p)
 
 
+
+
 class mahalanobis_distance(distance):
+  """
+  The mahalanobis_distance allows to compute the manhattan distance between two data points.
+  Note that, by default, the inverse covariance matrix is computed on the whole dataset.
+
+  Attributes:
+    inv_cov:          is the inverse covariance matrix, used in the following distance computations
+
+  Methods:
+    compute_distance: computes the mahalanobis distance between two data points, represented as two arrays.
+    set_parameters:   sets the inverse covariance matrix attribute obtained from the whole dataset
+  """
+
+
   def compute_distance(self, v1, v2):
     """
     The compute_distance method computes the distance between two arrays, with respect to the mahalanobis distance.
@@ -87,7 +137,8 @@ class mahalanobis_distance(distance):
     :param data: it is the 2D (samples*values) input matrix
     """
     try:
-      self.inv_cov = np.linalg.inv(np.cov(data+np.absolute(data).min()*0.00001*np.random.rand(np.shape(data)[0], np.shape(data)[1])))
+      self.inv_cov = np.linalg.inv(np.cov(data+np.absolute(data).min()*0.00001*np.random.rand(np.shape(data)[0],
+                                                                                              np.shape(data)[1])))
     except:
       self._inv_cov_managing(data)
 

@@ -19,7 +19,7 @@ class MainWindow(QtWidgets.QMainWindow):
         uic.loadUi(gui_name, self)
 
         ## Labels file management
-        self.first_labels_file = None
+        self.first_labels_file = "None"
         L = len(sys.argv)
         if L > 1:
             self.first_file = sys.argv[1]
@@ -38,6 +38,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.check_states = {0:False, 2:True}
         self.loader = data_loader()
 
+
     def previous_interface(self):
         self.exit()
         gui_call = "python " + str(self.metis_path / "Single_analysis.py") + " " + self.first_file + " "
@@ -45,8 +46,10 @@ class MainWindow(QtWidgets.QMainWindow):
         print('Opening Single Analysis interface')
         os.system(gui_call)
 
+
     def open_wiki(self):
         wb.open_new('https://github.com/smlacava/Metis/wiki/Double-analysis')
+
 
     def selected_distance(self):
         if self.Euclidean.isChecked() is True:
@@ -58,6 +61,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.Mahalanobis.isChecked() is True:
             return 'mahalanobis'
 
+
     def selected_algorithm(self):
         if self.No.isChecked() is True:
             return None
@@ -67,6 +71,7 @@ class MainWindow(QtWidgets.QMainWindow):
             return 'pca'
         elif self.ICA.isChecked() is True:
             return 'ica'
+
 
     def chosen_features(self):
         algorithm = self.selected_algorithm()
@@ -87,23 +92,28 @@ class MainWindow(QtWidgets.QMainWindow):
             features = int(self.features.text())
         return features
 
+
     def run_analysis(self):
-        first = np.array(self.loader.load_data(self.first_file))
-        report_file = str(Path(self.report_directory_name) / self.report_file_name)
-        x = ms.metis_study()
-        report_state = self.check_states[self.export_report.checkState()]
-        if len(np.shape(first)) == 3:
-            first_lbl = None
-        else:
-            first_lbl = self.loader.load_data(self.first_labels_file)
-        features = self.chosen_features()
-        x.data_analysis(first, view_analysis=True, generate_pdf=report_state,
-                            distance=self.selected_distance(), labels=first_lbl,
-                            report_name=report_file, name=self.first_name.text(),
-                            features_selection_algorithm=self.selected_algorithm(),
-                            selected_features=features)
-        if report_state is True:
-            wb.open_new(report_file)
+        try:
+            first = np.array(self.loader.load_data(self.first_file))
+            report_file = str(Path(self.report_directory_name) / self.report_file_name)
+            x = ms.metis_study()
+            report_state = self.check_states[self.export_report.checkState()]
+            if len(np.shape(first)) == 3:
+                first_lbl = None
+            else:
+                first_lbl = self.loader.load_data(self.first_labels_file)
+            features = self.chosen_features()
+            x.data_analysis(first, view_analysis=True, generate_pdf=report_state,
+                                distance=self.selected_distance(), labels=first_lbl,
+                                report_name=report_file, name=self.first_name.text(),
+                                features_selection_algorithm=self.selected_algorithm(),
+                                selected_features=features)
+            if report_state is True:
+                wb.open_new(report_file)
+        except:
+            os.system("python " + str(self.metis_path / "problem.py"))
+            
 
     def exit(self):
         self.close()
